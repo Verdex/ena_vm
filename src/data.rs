@@ -18,7 +18,6 @@ pub enum Op<ID> {
     Resume(ID),
     Yield(ID),
 
-
     // usize here is offset
     SetData(ID, usize, Vec<u8>),
     // ref, offset, ref, offset, length
@@ -34,38 +33,38 @@ pub enum Op<ID> {
     Call(ID, Vec<ID>),
     DynCall(ID, Vec<ID>),
 
-    FAdd(usize, usize),
-    FSub(usize, usize),
-    FMul(usize, usize),
-    FDiv(usize, usize),
-    FExp(usize, usize),
-    FNeg(usize),
+    FAdd(ID, ID, ID),
+    FSub(ID, ID, ID),
+    FMul(ID, ID, ID),
+    FDiv(ID, ID, ID),
+    FExp(ID, ID, ID),
+    FNeg(ID, ID),
 
-    FEq(usize, usize),
-    FGt(usize, usize),
-    FLt(usize, usize),
+    FEq(ID, ID, ID),
+    FGt(ID, ID, ID),
+    FLt(ID, ID, ID),
 
-    IAdd(usize, usize),
-    ISub(usize, usize),
-    IMul(usize, usize),
-    IDiv(usize, usize),
-    IMod(usize, usize),
-    IExp(usize, usize),
-    INeg(usize),
+    IAdd(ID, ID, ID),
+    ISub(ID, ID, ID),
+    IMul(ID, ID, ID),
+    IDiv(ID, ID, ID),
+    IMod(ID, ID, ID),
+    IExp(ID, ID, ID),
+    INeg(ID, ID),
 
-    IEq(usize, usize),
-    IGt(usize, usize),
-    ILt(usize, usize),
+    IEq(ID, ID, ID),
+    IGt(ID, ID, ID),
+    ILt(ID, ID, ID),
 
-    LNot(usize),
-    LAnd(usize, usize),
-    LOr(usize, usize),
-    LXor(usize, usize),
+    LNot(ID, ID),
+    LAnd(ID, ID, ID),
+    LOr(ID, ID, ID),
+    LXor(ID, ID, ID),
 
-    BNot(usize),
-    BAnd(usize, usize),
-    BOr(usize, usize),
-    BXor(usize, usize),
+    BNot(ID, ID),
+    BAnd(ID, ID, ID),
+    BOr(ID, ID, ID),
+    BXor(ID, ID, ID),
 
     Nop,
 }
