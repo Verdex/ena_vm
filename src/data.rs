@@ -7,13 +7,17 @@ use std::rc::Rc;
 
 #[derive(Debug)]
 pub enum Op<ID> {
+
     Jump(ID),
     BranchNotZero(ID, ID),
 
     // leaves address on ret
     AllocateData(usize),
     // leaves address on ret
-    AllocateCopyFrame, // TODO: also need to grab ip and which proc this even is (also how big is this thing anyway?).  Might want coroutine directly.
+    Coroutine(ID, Vec<ID>),
+    Resume(ID),
+    Yield(ID),
+
 
     // usize here is offset
     SetData(ID, usize, Vec<u8>),
@@ -30,21 +34,39 @@ pub enum Op<ID> {
     Call(ID, Vec<ID>),
     DynCall(ID, Vec<ID>),
 
+    FAdd(usize, usize),
+    FSub(usize, usize),
+    FMul(usize, usize),
+    FDiv(usize, usize),
+    FExp(usize, usize),
+    FNeg(usize),
+
+    FEq(usize, usize),
+    FGt(usize, usize),
+    FLt(usize, usize),
+
     IAdd(usize, usize),
     ISub(usize, usize),
     IMul(usize, usize),
     IDiv(usize, usize),
     IMod(usize, usize),
+    IExp(usize, usize),
     INeg(usize),
 
     IEq(usize, usize),
     IGt(usize, usize),
     ILt(usize, usize),
 
-    Not(usize),
-    And(usize, usize),
-    Or(usize, usize),
-    Xor(usize, usize),
+    LNot(usize),
+    LAnd(usize, usize),
+    LOr(usize, usize),
+    LXor(usize, usize),
+
+    BNot(usize),
+    BAnd(usize, usize),
+    BOr(usize, usize),
+    BXor(usize, usize),
+
     Nop,
 }
 
