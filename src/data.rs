@@ -72,6 +72,14 @@ pub enum Op<ID> {
 #[derive(Debug)]
 pub struct Proc { 
     pub name : Rc<str>,
-    pub instrs : Vec<Op>,
+    pub instrs : Vec<Op<Rc<str>>>,
+}
+
+#[derive(Debug)]
+pub struct CompiledProc { 
+    pub name : Rc<str>,
+    pub (crate) instrs : Vec<Op<usize>>,
+    pub (crate) slot_names : Vec<Rc<str>>,
+    pub (crate) frame_size : usize,
 }
 
