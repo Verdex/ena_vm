@@ -25,7 +25,47 @@ impl Vm {
         }
     }
 
-    pub fn run(&mut self, entry : usize) -> Result<usize, String> {
+    pub fn run(&mut self, entry : usize) -> Result<usize, VmError> {
+        if entry >= self.procs.len() {
+            return Err(VmError::UnknownProcId(entry, self.stack_trace()));
+        }
+
+        self.current.id = entry;
+        self.current.locals = std::iter::repeat(0).take(self.procs[entry].frame_size).collect();
+
+        let mut ret : Option<usize> = None;
+        loop {
+            if self.current.ip >= self.procs[self.current.id].instrs.len() {
+                return Err(VmError::InstrPointerOutOfRange(self.current.ip, self.stack_trace()));
+            }
+
+            match self.procs[self.current.id].instrs[self.current.ip] {
+                Op::FAdd(ID, ID, ID) => { },
+                Op::FSub(ID, ID, ID) => { },
+                Op::FMul(ID, ID, ID) => { },
+                Op::FDiv(ID, ID, ID) => { },
+                Op::FExp(ID, ID, ID) => { },
+                Op::FNeg(ID, ID) => { },
+
+                Op::FEq(ID, ID, ID) => { },
+                Op::FGt(ID, ID, ID) => { },
+                Op::FLt(ID, ID, ID) => { },
+
+                Op::IAdd(ID, ID, ID) => { },
+                Op::ISub(ID, ID, ID) => { },
+                Op::IMul(ID, ID, ID) => { },
+                Op::IDiv(ID, ID, ID) => { },
+                Op::IMod(ID, ID, ID) => { },
+                Op::IExp(ID, ID, ID) => { },
+                Op::INeg(ID, ID) => { },
+
+                Op::IEq(ID, ID, ID) => { },
+                Op::IGt(ID, ID, ID) => { },
+                Op::ILt(ID, ID, ID) => { },
+
+                _ => todo!(),
+            }
+        }
         Ok(0)
     }
 
