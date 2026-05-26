@@ -83,3 +83,26 @@ pub struct CompiledProc {
     pub (crate) frame_size : usize,
 }
 
+
+pub type StackTrace = Vec<(Rc<str>, usize)>;
+
+#[derive(Debug)]
+pub enum VmError {
+    UnknownProcId(usize, StackTrace),
+}
+
+impl std::fmt::Display for VmError {
+    fn fmt(&self, f : &mut std::fmt::Formatter) -> std::fmt::Result {
+        fn d(x : &StackTrace) -> String {
+            x.into_iter().map(|(n, i)| format!("    {} at index {}\n", n, i)).collect()
+        }
+
+        match self { 
+            VmError::UnknownProcId(id, st) => write!(f, "encountered unknown proc id {}\n{}", id, d(st)),
+        }
+    }
+}
+
+impl std::error::Error for VmError { }
+
+
