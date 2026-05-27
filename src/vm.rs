@@ -26,9 +26,6 @@ impl Vm {
     }
 
     pub fn run(&mut self, entry : usize) -> Result<usize, VmError> {
-        const FLEN : usize = 8;
-        const ILEN : usize = 8;
-
         if entry >= self.procs.len() {
             return Err(VmError::UnknownProcId(entry, self.stack_trace()));
         }
@@ -50,14 +47,14 @@ impl Vm {
                     let b_addr = self.current.locals[b];
                     let dest_addr = self.current.locals[dest];
 
-                    let a : [u8; 8] = self.memory[a_addr  ..= a_addr + FLEN].try_into().unwrap();
-                    let b : [u8; 8] = self.memory[b_addr  ..= b_addr + FLEN].try_into().unwrap();
+                    let a : [u8; 8] = self.memory[a_addr  ..= a_addr + 8].try_into().unwrap();
+                    let b : [u8; 8] = self.memory[b_addr  ..= b_addr + 8].try_into().unwrap();
 
                     let a = f64::from_ne_bytes(a);
                     let b = f64::from_ne_bytes(b);
 
                     let answer = f64::to_ne_bytes( a + b );
-                    self.memory[dest_addr .. dest_addr + FLEN].copy_from_slice(&answer);
+                    self.memory[dest_addr .. dest_addr + 8].copy_from_slice(&answer);
 
                     self.current.ip += 1;
                 },
