@@ -45,13 +45,13 @@ impl Vm {
             }
 
             match self.procs[self.current.id].instrs[self.current.ip] {
-                Op::FAdd(dest, a, b) => { 
+                Op::F64Add(dest, a, b) => { 
                     let a_addr = self.current.locals[a];
                     let b_addr = self.current.locals[b];
                     let dest_addr = self.current.locals[dest];
 
-                    let a = self.memory[a_addr  ..= a_addr + FLEN];
-                    let b = self.memory[b_addr  ..= b_addr + FLEN];
+                    let a : [u8; 8] = self.memory[a_addr  ..= a_addr + FLEN].try_into().unwrap();
+                    let b : [u8; 8] = self.memory[b_addr  ..= b_addr + FLEN].try_into().unwrap();
 
                     let a = f64::from_ne_bytes(a);
                     let b = f64::from_ne_bytes(b);
@@ -61,65 +61,65 @@ impl Vm {
 
                     self.current.ip += 1;
                 },
-                Op::FSub(dest, a, b) => { 
+                Op::F64Sub(dest, a, b) => { 
 
                     self.current.ip += 1;
                 },
-                Op::FMul(dest, a, b) => { 
+                Op::F64Mul(dest, a, b) => { 
 
                     self.current.ip += 1;
                 },
-                Op::FDiv(dest, a, b) => { 
+                Op::F64Div(dest, a, b) => { 
                     self.current.ip += 1;
                 },
-                Op::FExp(dest, a, b) => { 
+                Op::F64Exp(dest, a, b) => { 
 
                     self.current.ip += 1;
                 },
-                Op::FNeg(dest, x) => { 
+                Op::F64Neg(dest, x) => { 
 
                     self.current.ip += 1;
                 },
-                Op::FEq(dest, a, b) => { 
+                Op::F64Eq(dest, a, b) => { 
                     
                     self.current.ip += 1;
                 },
-                Op::FGt(dest, a, b) => {
+                Op::F64Gt(dest, a, b) => {
                     self.current.ip += 1;
                 },
-                Op::FLt(dest, a, b) => { 
+                Op::F64Lt(dest, a, b) => { 
                     self.current.ip += 1;
                 },
-                Op::IAdd(dest, a, b) => { 
+                Op::I64Add(dest, a, b) => { 
                     self.current.ip += 1;
                 },
-                Op::ISub(dest, a, b) => { 
+                Op::I64Sub(dest, a, b) => { 
 
                     self.current.ip += 1;
                 },
-                Op::IMul(dest, a, b) => { 
+                Op::I64Mul(dest, a, b) => { 
                     self.current.ip += 1;
                 },
-                Op::IDiv(dest, a, b) => { 
+                Op::I64Div(dest, a, b) => { 
                     self.current.ip += 1;
                 },
-                Op::IMod(dest, a, b) => { 
+                Op::I64Mod(dest, a, b) => { 
                     self.current.ip += 1;
                 },
-                Op::IExp(dest, a, b) => { 
+                Op::I64Exp(dest, a, b) => { 
 
                     self.current.ip += 1;
                 },
-                Op::INeg(dest, x) => { 
+                Op::I64Neg(dest, x) => { 
                     self.current.ip += 1;
                 },
-                Op::IEq(dest, a, b) => {
+                Op::I64Eq(dest, a, b) => {
                     self.current.ip += 1;
                 },
-                Op::IGt(dest, a, b) => { 
+                Op::I64Gt(dest, a, b) => { 
                     self.current.ip += 1;
                 },
-                Op::ILt(dest, a, b) => { 
+                Op::I64Lt(dest, a, b) => { 
 
                     self.current.ip += 1;
                 },

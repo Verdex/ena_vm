@@ -33,29 +33,30 @@ pub enum Op<ID> {
     Call(ID, Vec<ID>),
     DynCall(ID, Vec<ID>),
 
-    FAdd(ID, ID, ID),
-    FSub(ID, ID, ID),
-    FMul(ID, ID, ID),
-    FDiv(ID, ID, ID),
-    FExp(ID, ID, ID),
-    FNeg(ID, ID),
+    F64Add(ID, ID, ID),
+    F64Sub(ID, ID, ID),
+    F64Mul(ID, ID, ID),
+    F64Div(ID, ID, ID),
+    F64Exp(ID, ID, ID),
+    F64Neg(ID, ID),
 
-    FEq(ID, ID, ID),
-    FGt(ID, ID, ID),
-    FLt(ID, ID, ID),
+    F64Eq(ID, ID, ID),
+    F64Gt(ID, ID, ID),
+    F64Lt(ID, ID, ID),
 
-    IAdd(ID, ID, ID),
-    ISub(ID, ID, ID),
-    IMul(ID, ID, ID),
-    IDiv(ID, ID, ID),
-    IMod(ID, ID, ID),
-    IExp(ID, ID, ID),
-    INeg(ID, ID),
+    I64Add(ID, ID, ID),
+    I64Sub(ID, ID, ID),
+    I64Mul(ID, ID, ID),
+    I64Div(ID, ID, ID),
+    I64Mod(ID, ID, ID),
+    I64Exp(ID, ID, ID),
+    I64Neg(ID, ID),
 
-    IEq(ID, ID, ID),
-    IGt(ID, ID, ID),
-    ILt(ID, ID, ID),
+    I64Eq(ID, ID, ID),
+    I64Gt(ID, ID, ID),
+    I64Lt(ID, ID, ID),
 
+    // TODO ??
     LNot(ID, ID),
     LAnd(ID, ID, ID),
     LOr(ID, ID, ID),
@@ -65,6 +66,7 @@ pub enum Op<ID> {
     BAnd(ID, ID, ID),
     BOr(ID, ID, ID),
     BXor(ID, ID, ID),
+    // TODO shift
 
     Nop,
 }
