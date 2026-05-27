@@ -91,6 +91,8 @@ pub type StackTrace = Vec<(Rc<str>, usize)>;
 pub enum VmError {
     UnknownProcId(usize, StackTrace),
     InstrPointerOutOfRange(usize, StackTrace),
+    MemoryAccessOutOfRange(usize, StackTrace),
+    SetMemoryOutOfRange(usize, usize, StackTrace),
 }
 
 impl std::fmt::Display for VmError {
@@ -101,6 +103,8 @@ impl std::fmt::Display for VmError {
         match self { 
             VmError::UnknownProcId(id, st) => write!(f, "encountered unknown proc id: {}\n{}", id, d(st)),
             VmError::InstrPointerOutOfRange(ip, st) => write!(f, "encountered instruction pointer past proc length: {}\n{}", ip, d(st)),
+            VmError::MemoryAccessOutOfRange(addr, st) => write!(f, "memory access out of range: {}\n{}", addr, d(st)),
+            VmError::SetMemoryOutOfRange(addr, len, st) => write!(f, "set memory out of range: {} of length: {}\n{}", addr, len, d(st)),
         }
     }
 }
