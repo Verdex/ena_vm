@@ -42,6 +42,31 @@ impl Vm {
             }
 
             match self.procs[self.current.id].instrs[self.current.ip] {
+                Op::AllocateData(x, size) => {
+                    let len = self.memory.len();
+                    self.memory.append(&mut vec![0; size]);
+                    self.current.locals[x] = len;
+                    self.current.ip += 1;
+                },
+                Op::SetData(x, offset, ref data) => {
+                    let addr = self.current.locals[x];
+                    if addr + offset > self.memory.len() {
+                        return Err(VmError::MemoryAccessOutOfRange(addr + offset, self.stack_trace()));
+                    }
+                    if addr + offset + data.len() >= self.memory.len() {
+                        return Err(VmError::SetMemoryOutOfRange(addr + offset, data.len(), self.stack_trace()));
+                    }
+                    self.current.ip += 1;
+                },
+                Op::ReturnLocal(x) => { 
+                    if let Some(f) = self.frames.pop() {
+                        ret = Some(x); 
+                        todo!()
+                    }
+                    else {
+                        return Ok(x);
+                    }
+                },
                 Op::F64Add(dest, a, b) => { 
                     let a_addr = self.current.locals[a];
                     let b_addr = self.current.locals[b];
@@ -124,7 +149,6 @@ impl Vm {
                 _ => todo!(),
             }
         }
-        Ok(0)
     }
 
     fn stack_trace(&self) -> StackTrace {
