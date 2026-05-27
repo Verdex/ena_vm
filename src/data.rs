@@ -11,9 +11,8 @@ pub enum Op<ID> {
     Jump(ID),
     BranchNotZero(ID, ID),
 
-    // leaves address on ret
-    AllocateData(usize),
-    // leaves address on ret
+    AllocateData(ID, usize),
+    // TODO whether or not we need to use ret probably depends on the execution strat here
     Coroutine(ID, Vec<ID>),
     Resume(ID),
     Yield(ID),
