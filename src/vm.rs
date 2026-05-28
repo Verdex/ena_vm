@@ -69,20 +69,20 @@ impl Vm {
                         return Ok(addr);
                     }
                 },
-                Op::F64Add(dest, a, b) => { 
+                Op::F64Add(dest, a, b) => {  
                     let a_addr = self.current.locals[a];
                     let b_addr = self.current.locals[b];
                     let dest_addr = self.current.locals[dest];
 
-                    let a : [u8; 8] = self.memory[a_addr  ..= a_addr + 8].try_into().unwrap();
-                    let b : [u8; 8] = self.memory[b_addr  ..= b_addr + 8].try_into().unwrap();
+                    let a : [u8; 8] = self.memory[a_addr  .. a_addr + 8].try_into().unwrap();
+                    let b : [u8; 8] = self.memory[b_addr  .. b_addr + 8].try_into().unwrap();
 
                     let a = f64::from_ne_bytes(a);
                     let b = f64::from_ne_bytes(b);
 
                     let answer = f64::to_ne_bytes( a + b );
+                    // TODO: set memory out of range error possible
                     self.memory[dest_addr .. dest_addr + 8].copy_from_slice(&answer);
-
                     self.current.ip += 1;
                 },
                 Op::F64Sub(dest, a, b) => { 
@@ -115,6 +115,22 @@ impl Vm {
                     self.current.ip += 1;
                 },
                 Op::I64Add(dest, a, b) => { 
+                    let a_addr = self.current.locals[a];
+                    let b_addr = self.current.locals[b];
+                    let dest_addr = self.current.locals[dest];
+
+                    let a : [u8; 8] = self.memory[a_addr  .. a_addr + 8].try_into().unwrap();
+                    let b : [u8; 8] = self.memory[b_addr  .. b_addr + 8].try_into().unwrap();
+
+                    let a = i64::from_ne_bytes(a);
+                    let b = i64::from_ne_bytes(b);
+
+                    println!("{} :: {}", a, b);
+
+                    let answer = i64::to_ne_bytes( a + b );
+                    // TODO: set memory out of range error possible
+                    self.memory[dest_addr .. dest_addr + 8].copy_from_slice(&answer);
+                    println!("{:?}", self.memory);
                     self.current.ip += 1;
                 },
                 Op::I64Sub(dest, a, b) => { 
