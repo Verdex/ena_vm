@@ -56,6 +56,7 @@ impl Vm {
                     if addr + offset + data.len() >= self.memory.len() {
                         return Err(VmError::SetMemoryOutOfRange(addr + offset, data.len(), self.stack_trace()));
                     }
+                    self.memory[addr + offset .. addr + offset + data.len()].copy_from_slice(data);
                     self.current.ip += 1;
                 },
                 Op::ReturnLocal(x) => { 
