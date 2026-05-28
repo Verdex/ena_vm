@@ -125,12 +125,9 @@ impl Vm {
                     let a = i64::from_ne_bytes(a);
                     let b = i64::from_ne_bytes(b);
 
-                    println!("{} :: {}", a, b);
-
                     let answer = i64::to_ne_bytes( a + b );
                     // TODO: set memory out of range error possible
                     self.memory[dest_addr .. dest_addr + 8].copy_from_slice(&answer);
-                    println!("{:?}", self.memory);
                     self.current.ip += 1;
                 },
                 Op::I64Sub(dest, a, b) => { 
@@ -204,6 +201,5 @@ mod test {
         let x = i64::from_ne_bytes(x);
         assert_eq!(x, 10);
     }
-
 }
 
