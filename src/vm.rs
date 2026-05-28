@@ -59,12 +59,13 @@ impl Vm {
                     self.current.ip += 1;
                 },
                 Op::ReturnLocal(x) => { 
+                    let addr = self.current.locals[x];
                     if let Some(f) = self.frames.pop() {
-                        ret = Some(x); 
+                        ret = Some(addr); 
                         todo!()
                     }
                     else {
-                        return Ok(x);
+                        return Ok(addr);
                     }
                 },
                 Op::F64Add(dest, a, b) => { 
