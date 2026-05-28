@@ -152,19 +152,40 @@ impl Vm {
     }
 
     fn stack_trace(&self) -> StackTrace {
-        struct RetAddr { proc: usize, instr : usize }
-
-        let mut stack = self.frames.iter().map(|x| RetAddr { proc: x.id, instr: x.ip }).collect::<Vec<_>>();
-        stack.push(RetAddr { proc: self.current.id, instr: self.current.ip + 1});
-
-        let mut trace = vec![];
-        for addr in stack {
-            // Note:  if the procedure was already pushed into the stack, then
-            // that means that it already resolved to a known procedure. Don't
-            // have to check again that the proc map has it.
-            let name = Rc::clone(&self.procs[addr.proc].name);
-            trace.push((name, addr.instr - 1));
-        }
-        trace
+        // Note:  Previous frames will have already incremented past the current call op
+        self.frames.iter().map(|x| (x.id, x.ip - 1))
+                          .chain(std::iter::once( (self.current.id, self.current.ip) ) )
+                          .map(|(id, ip)| (Rc::clone(&self.procs[id].name), ip))
+                          .collect()
     }
 }
+
+#[cfg(test)]
+mod test { 
+    use super::*;
+
+    #[test]
+    fn blarg() {
+        let procs = vec![CompiledProc { 
+            name: "main".into(),
+            slot_names: vec![],
+            instrs: vec![
+                Op::AllocateData(0, 8),
+                Op::AllocateData(1, 8),
+                Op::AllocateData(2, 8),
+                Op::SetData(0, 8, i64::to_ne_bytes(3).to_vec()),
+                Op::SetData(1, 8, i64::to_ne_bytes(7).to_vec()),
+                Op::I64Add(2, 0, 1),
+                Op::ReturnLocal(2),
+            ],
+            frame_size: 3,
+        } ];
+        let mut vm = Vm::new(procs);
+        let addr = vm.run(0).unwrap(); 
+        let x : [u8; 8] = vm.memory[addr .. addr + 8].try_into().unwrap();
+        let x = i64::from_ne_bytes(x);
+        assert_eq!(x, 10);
+    }
+
+}
+
