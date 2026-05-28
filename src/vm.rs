@@ -26,6 +26,8 @@ impl Vm {
     }
 
     pub fn run(&mut self, entry : usize) -> Result<usize, VmError> {
+        const SI64 : usize = size_of::<i64>();
+
         if entry >= self.procs.len() {
             return Err(VmError::UnknownProcId(entry, self.stack_trace()));
         }
@@ -115,19 +117,23 @@ impl Vm {
                     self.current.ip += 1;
                 },
                 Op::I64Add(dest, a, b) => { 
+                    /*macro_rules! bin_math {
+                        ($self: ident, $dest: ident, $a:ident, $b:ident, $from: expr, $to:expr, 
+                    }*/
+
                     let a_addr = self.current.locals[a];
                     let b_addr = self.current.locals[b];
                     let dest_addr = self.current.locals[dest];
 
-                    let a : [u8; 8] = self.memory[a_addr  .. a_addr + 8].try_into().unwrap();
-                    let b : [u8; 8] = self.memory[b_addr  .. b_addr + 8].try_into().unwrap();
+                    let a : [u8; SI64] = self.memory[a_addr  .. a_addr + SI64].try_into().unwrap();
+                    let b : [u8; SI64] = self.memory[b_addr  .. b_addr + SI64].try_into().unwrap();
 
                     let a = i64::from_ne_bytes(a);
                     let b = i64::from_ne_bytes(b);
 
                     let answer = i64::to_ne_bytes( a + b );
                     // TODO: set memory out of range error possible
-                    self.memory[dest_addr .. dest_addr + 8].copy_from_slice(&answer);
+                    self.memory[dest_addr .. dest_addr + SI64].copy_from_slice(&answer);
                     self.current.ip += 1;
                 },
                 Op::I64Sub(dest, a, b) => { 
@@ -180,7 +186,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn blarg() {
+    fn should_handle_two_param_math_op() {
         let procs = vec![CompiledProc { 
             name: "main".into(),
             slot_names: vec![],
