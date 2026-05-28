@@ -187,6 +187,7 @@ mod test {
 
     #[test]
     fn should_handle_two_param_math_op() {
+        // TODO use size of
         let procs = vec![CompiledProc { 
             name: "main".into(),
             slot_names: vec![],
