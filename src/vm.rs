@@ -118,23 +118,7 @@ impl Vm {
                     self.current.ip += 1;
                 },
                 Op::I64Add(dest, a, b) => { 
-                    /*macro_rules! bin_math {
-                        ($self: ident, $dest: ident, $a:ident, $b:ident, $from: expr, $to:expr, 
-                    }*/
-
-                    let a_addr = self.current.locals[a];
-                    let b_addr = self.current.locals[b];
-                    let dest_addr = self.current.locals[dest];
-
-                    let a : [u8; SI64] = self.memory[a_addr  .. a_addr + SI64].try_into().unwrap();
-                    let b : [u8; SI64] = self.memory[b_addr  .. b_addr + SI64].try_into().unwrap();
-
-                    let a = i64::from_ne_bytes(a);
-                    let b = i64::from_ne_bytes(b);
-
-                    let answer = i64::to_ne_bytes( a + b );
-                    // TODO: set memory out of range error possible
-                    self.memory[dest_addr .. dest_addr + SI64].copy_from_slice(&answer);
+                    self.bin_math(dest, a, b, i64::from_ne_bytes, i64::to_ne_bytes, |x, y| x + y)?;
                     self.current.ip += 1;
                 },
                 Op::I64Sub(dest, a, b) => { 
@@ -171,6 +155,39 @@ impl Vm {
                 _ => todo!(),
             }
         }
+    }
+
+    fn bin_math<T, const S: usize>(&mut self, 
+        dest: usize, 
+        a: usize, 
+        b: usize, 
+        from: fn([u8; S]) -> T, 
+        to : fn(T) -> [u8; S],
+        op: fn(T, T) -> T) -> Result<(), VmError> {
+
+        let a_addr = self.current.locals[a];
+        let b_addr = self.current.locals[b];
+        let dest_addr = self.current.locals[dest];
+
+        if a_addr + S >= self.memory.len() {
+            return Err(VmError::MemoryAccessOutOfRange(a_addr, self.stack_trace()));
+        }
+        if b_addr + S >= self.memory.len() {
+            return Err(VmError::MemoryAccessOutOfRange(b_addr, self.stack_trace()));
+        }
+        let a : [u8; S] = self.memory[a_addr  .. a_addr + S].try_into().unwrap();
+        let b : [u8; S] = self.memory[b_addr  .. b_addr + S].try_into().unwrap();
+
+        let a = from(a);
+        let b = from(b);
+
+        let answer = to( op(a, b) );
+
+        if dest_addr + S > self.memory.len() {
+            return Err(VmError::SetMemoryOutOfRange(dest_addr, S, self.stack_trace()));
+        }
+        self.memory[dest_addr .. dest_addr + S].copy_from_slice(&answer);
+        Ok(())
     }
 
     fn stack_trace(&self) -> StackTrace {
