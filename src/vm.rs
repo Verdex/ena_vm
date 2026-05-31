@@ -2,6 +2,7 @@
 use std::rc::Rc;
 use crate::data::{ Op, CompiledProc, VmError, StackTrace };
 
+
 struct Frame {
     id: usize,
     ip: usize,
@@ -55,7 +56,7 @@ impl Vm {
                     if addr + offset > self.memory.len() {
                         return Err(VmError::MemoryAccessOutOfRange(addr + offset, self.stack_trace()));
                     }
-                    if addr + offset + data.len() >= self.memory.len() {
+                    if addr + offset + data.len() > self.memory.len() {
                         return Err(VmError::SetMemoryOutOfRange(addr + offset, data.len(), self.stack_trace()));
                     }
                     self.memory[addr + offset .. addr + offset + data.len()].copy_from_slice(data);
