@@ -75,18 +75,19 @@ impl Vm {
                     self.current.ip += 1;
                 },
                 Op::F64Sub(dest, a, b) => { 
-
+                    self.bin_math(dest, a, b, f64::from_ne_bytes, f64::to_ne_bytes, |x, y| x - y)?;
                     self.current.ip += 1;
                 },
                 Op::F64Mul(dest, a, b) => { 
-
+                    self.bin_math(dest, a, b, f64::from_ne_bytes, f64::to_ne_bytes, |x, y| x * y)?;
                     self.current.ip += 1;
                 },
                 Op::F64Div(dest, a, b) => { 
+                    self.bin_math(dest, a, b, f64::from_ne_bytes, f64::to_ne_bytes, |x, y| x / y)?;
                     self.current.ip += 1;
                 },
                 Op::F64Exp(dest, a, b) => { 
-
+                    // TODO
                     self.current.ip += 1;
                 },
                 Op::F64Neg(dest, x) => { 
@@ -108,16 +109,19 @@ impl Vm {
                     self.current.ip += 1;
                 },
                 Op::I64Sub(dest, a, b) => { 
-
+                    self.bin_math(dest, a, b, i64::from_ne_bytes, i64::to_ne_bytes, |x, y| x - y)?;
                     self.current.ip += 1;
                 },
                 Op::I64Mul(dest, a, b) => { 
+                    self.bin_math(dest, a, b, i64::from_ne_bytes, i64::to_ne_bytes, |x, y| x * y)?;
                     self.current.ip += 1;
                 },
                 Op::I64Div(dest, a, b) => { 
+                    self.bin_math(dest, a, b, i64::from_ne_bytes, i64::to_ne_bytes, |x, y| x / y)?;
                     self.current.ip += 1;
                 },
                 Op::I64Mod(dest, a, b) => { 
+                    self.bin_math(dest, a, b, i64::from_ne_bytes, i64::to_ne_bytes, |x, y| x % y)?;
                     self.current.ip += 1;
                 },
                 Op::I64Exp(dest, a, b) => { 
@@ -191,7 +195,6 @@ mod test {
 
     #[test]
     fn should_handle_two_param_math_op() {
-        // TODO use size of
         let procs = vec![CompiledProc { 
             name: "main".into(),
             slot_names: vec![],
