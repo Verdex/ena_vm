@@ -5,6 +5,9 @@ use std::rc::Rc;
 // locals and globals are all references
 // dest, src, [src]
 
+pub const PTR_SIZE : usize = std::mem::size_of::<usize>();
+pub const OFFSET_SIZE : usize = std::mem::size_of::<isize>();
+
 #[derive(Debug)]
 pub enum Op<ID> {
 
@@ -19,6 +22,7 @@ pub enum Op<ID> {
 
     // usize here is offset
     SetData(ID, usize, Vec<u8>),
+    // TODO need to be able to set ptr value on stack and heap
     // ref, offset, ref, offset, length
     CopyData(ID, usize, ID, usize, usize),
 
@@ -31,6 +35,12 @@ pub enum Op<ID> {
 
     Call(ID, Vec<ID>),
     DynCall(ID, Vec<ID>),
+
+    PtrAdd(ID, ID, ID), // TODO need to be able to op ptr on stack and heap
+    PtrSub(ID, ID, ID),
+    // TODO Offset add, sub, mul (div/mod?)
+
+    // TODO also need to bring pointer value from heap to stack
 
     F64Add(ID, ID, ID),
     F64Sub(ID, ID, ID),
