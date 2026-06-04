@@ -40,6 +40,9 @@ pub enum Op<ID> {
     Call(ID, Vec<ID>),
     DynCall(ID, Vec<ID>),
 
+    // Dest pointer, source pointer, source offset
+    LocalPtrAdd(ID, ID, ID), 
+    LocalPtrSub(ID, ID, ID),
     PtrAdd(ID, ID, ID), 
     PtrSub(ID, ID, ID),
 

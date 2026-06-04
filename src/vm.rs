@@ -71,6 +71,37 @@ impl Vm {
                         return Ok(addr);
                     }
                 },
+                Op::LocalPtrAdd(dest, ptr, offset) => {
+                    self.current.ip += 1;
+                },
+                Op::LocalPtrSub(dest, ptr, offset) => {
+                    self.current.ip += 1;
+                },
+                Op::PtrAdd(dest, ptr, offset) => {
+
+                    self.current.ip += 1;
+                },
+                Op::PtrSub(dest, ptr, offset) => {
+                    self.current.ip += 1;
+                },
+                Op::OffsetAdd(dest, ptr, offset) => {
+                    self.current.ip += 1;
+                },
+                Op::OffsetSub(dest, ptr, offset) => {
+                    self.current.ip += 1;
+                },
+                Op::OffsetMul(dest, ptr, offset) => {
+                    self.current.ip += 1;
+                },
+                Op::OffsetDiv(dest, ptr, offset) => {
+                    self.current.ip += 1;
+                },
+                Op::OffsetExp(dest, ptr, offset) => { 
+                    self.current.ip += 1;
+                },
+                Op::OffsetNeg(dest, x) => {
+                    self.current.ip += 1;
+                },
                 Op::F64Add(dest, a, b) => {  
                     self.bin_math(dest, a, b, f64::from_ne_bytes, f64::to_ne_bytes, |x, y| x + y)?;
                     self.current.ip += 1;
