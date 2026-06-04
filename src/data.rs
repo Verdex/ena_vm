@@ -21,7 +21,7 @@ pub enum Op<ID> {
     Yield(ID),
 
     // usize here is offset
-    SetData(ID, usize, Vec<u8>),
+    DataToHeap(ID, usize, Vec<u8>),
     // TODO need to be able to set ptr value on stack and heap
     // ref, offset, ref, offset, length
     CopyData(ID, usize, ID, usize, usize),

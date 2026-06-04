@@ -49,7 +49,7 @@ impl Vm {
                     self.current.locals[x] = len;
                     self.current.ip += 1;
                 },
-                Op::SetData(x, offset, ref data) => {
+                Op::DataToHeap(x, offset, ref data) => {
                     let addr = self.current.locals[x];
                     if addr + offset > self.memory.len() {
                         return Err(VmError::MemoryAccessOutOfRange(addr + offset, self.stack_trace()));
@@ -202,8 +202,8 @@ mod test {
                 Op::AllocateData(0, 8),
                 Op::AllocateData(1, 8),
                 Op::AllocateData(2, 8),
-                Op::SetData(0, 0, i64::to_ne_bytes(3).to_vec()),
-                Op::SetData(1, 0, i64::to_ne_bytes(7).to_vec()),
+                Op::DataToHeap(0, 0, i64::to_ne_bytes(3).to_vec()),
+                Op::DataToHeap(1, 0, i64::to_ne_bytes(7).to_vec()),
                 Op::I64Add(2, 0, 1),
                 Op::ReturnLocal(2),
             ],
