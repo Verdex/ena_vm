@@ -50,7 +50,6 @@ pub enum Op<ID> {
     OffsetSub(ID, ID, ID),
     OffsetMul(ID, ID, ID),
     OffsetDiv(ID, ID, ID),
-    OffsetExp(ID, ID, ID),
     OffsetNeg(ID, ID),
 
     F64Add(ID, ID, ID),
@@ -69,7 +68,6 @@ pub enum Op<ID> {
     I64Mul(ID, ID, ID),
     I64Div(ID, ID, ID),
     I64Mod(ID, ID, ID),
-    I64Exp(ID, ID, ID),
     I64Neg(ID, ID),
 
     I64Eq(ID, ID, ID),

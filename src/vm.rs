@@ -84,19 +84,20 @@ impl Vm {
                 Op::PtrSub(dest, ptr, offset) => {
                     self.current.ip += 1;
                 },
-                Op::OffsetAdd(dest, ptr, offset) => {
+                Op::OffsetAdd(dest, a, b) => {
+                    self.bin_math(dest, a, b, isize::from_ne_bytes, isize::to_ne_bytes, |x, y| x + y)?;
                     self.current.ip += 1;
                 },
-                Op::OffsetSub(dest, ptr, offset) => {
+                Op::OffsetSub(dest, a, b) => {
+                    self.bin_math(dest, a, b, isize::from_ne_bytes, isize::to_ne_bytes, |x, y| x - y)?;
                     self.current.ip += 1;
                 },
-                Op::OffsetMul(dest, ptr, offset) => {
+                Op::OffsetMul(dest, a, b) => {
+                    self.bin_math(dest, a, b, isize::from_ne_bytes, isize::to_ne_bytes, |x, y| x * y)?;
                     self.current.ip += 1;
                 },
-                Op::OffsetDiv(dest, ptr, offset) => {
-                    self.current.ip += 1;
-                },
-                Op::OffsetExp(dest, ptr, offset) => { 
+                Op::OffsetDiv(dest, a, b) => {
+                    self.bin_math(dest, a, b, isize::from_ne_bytes, isize::to_ne_bytes, |x, y| x / y)?;
                     self.current.ip += 1;
                 },
                 Op::OffsetNeg(dest, x) => {
@@ -119,7 +120,7 @@ impl Vm {
                     self.current.ip += 1;
                 },
                 Op::F64Exp(dest, a, b) => { 
-                    // TODO
+                    self.bin_math(dest, a, b, f64::from_ne_bytes, f64::to_ne_bytes, |x, y| x.powf(y))?;
                     self.current.ip += 1;
                 },
                 Op::F64Neg(dest, x) => { 
@@ -154,10 +155,6 @@ impl Vm {
                 },
                 Op::I64Mod(dest, a, b) => { 
                     self.bin_math(dest, a, b, i64::from_ne_bytes, i64::to_ne_bytes, |x, y| x % y)?;
-                    self.current.ip += 1;
-                },
-                Op::I64Exp(dest, a, b) => { 
-
                     self.current.ip += 1;
                 },
                 Op::I64Neg(dest, x) => { 
