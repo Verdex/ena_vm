@@ -1,6 +1,6 @@
 
 use std::rc::Rc;
-use crate::data::{ Op, CompiledProc, VmError, StackTrace };
+use crate::data::{Op, CompiledProc, VmError, StackTrace };
 
 
 struct Frame {
@@ -49,15 +49,16 @@ impl Vm {
                     self.current.locals[x] = len;
                     self.current.ip += 1;
                 },
-                Op::DataToHeap(x, offset, ref data) => {
+                Op::DataToHeap(x, ref data) => {
+                    let data = &data.0;
                     let addr = self.current.locals[x];
-                    if addr + offset > self.memory.len() {
-                        return Err(VmError::MemoryAccessOutOfRange(addr + offset, self.stack_trace()));
+                    if addr > self.memory.len() {
+                        return Err(VmError::MemoryAccessOutOfRange(addr, self.stack_trace()));
                     }
-                    if addr + offset + data.len() > self.memory.len() {
-                        return Err(VmError::SetMemoryOutOfRange(addr + offset, data.len(), self.stack_trace()));
+                    if addr + data.len() > self.memory.len() {
+                        return Err(VmError::SetMemoryOutOfRange(addr, data.len(), self.stack_trace()));
                     }
-                    self.memory[addr + offset .. addr + offset + data.len()].copy_from_slice(data);
+                    self.memory[addr .. addr + data.len()].copy_from_slice(data);
                     self.current.ip += 1;
                 },
                 Op::ReturnLocal(x) => { 
@@ -191,6 +192,7 @@ impl Vm {
 
 #[cfg(test)]
 mod test { 
+    use crate::data;
     use super::*;
 
     #[test]
@@ -202,8 +204,8 @@ mod test {
                 Op::AllocateData(0, 8),
                 Op::AllocateData(1, 8),
                 Op::AllocateData(2, 8),
-                Op::DataToHeap(0, 0, i64::to_ne_bytes(3).to_vec()),
-                Op::DataToHeap(1, 0, i64::to_ne_bytes(7).to_vec()),
+                Op::DataToHeap(0, data::int64(3)),
+                Op::DataToHeap(1, data::int64(7)),
                 Op::I64Add(2, 0, 1),
                 Op::ReturnLocal(2),
             ],

@@ -25,12 +25,10 @@ pub enum Op<ID> {
     Resume(ID),
     Yield(ID),
 
-    // usize here is offset
-    DataToHeap(ID, usize, Data),
+    DataToHeap(ID, Data),
     PtrToHeap(ID, ID),
-    // TODO need to be able to set ptr value on stack and heap
-    // ref, offset, ref, offset, length
-    CopyData(ID, usize, ID, usize, usize),
+    PtrFromHeap(ID, ID),
+    CopyData(ID, ID, usize),
 
     ReturnLocal(ID), 
     SetLocalFromReturn(ID),
@@ -42,11 +40,8 @@ pub enum Op<ID> {
     Call(ID, Vec<ID>),
     DynCall(ID, Vec<ID>),
 
-    PtrAdd(ID, ID, ID), // TODO need to be able to op ptr on stack and heap
+    PtrAdd(ID, ID, ID), 
     PtrSub(ID, ID, ID),
-    // TODO Offset add, sub, mul (div/mod?)
-
-    // TODO also need to bring pointer value from heap to stack
 
     OffsetAdd(ID, ID, ID),
     OffsetSub(ID, ID, ID),
