@@ -9,6 +9,7 @@ pub const F64_SIZE : usize = std::mem::size_of::<f64>();
 pub const I64_SIZE : usize = std::mem::size_of::<i64>();
 pub const PTR_SIZE : usize = std::mem::size_of::<usize>();
 pub const OFFSET_SIZE : usize = std::mem::size_of::<isize>();
+pub const BOOL_SIZE : usize = std::mem::size_of::<bool>();
 
 #[derive(Debug)]
 pub struct Data(pub (crate) Vec<u8>);
@@ -51,6 +52,10 @@ pub enum Op<ID> {
     OffsetMul(ID, ID, ID),
     OffsetDiv(ID, ID, ID),
     OffsetNeg(ID, ID),
+
+    OffsetEq(ID, ID, ID),
+    OffsetGt(ID, ID, ID),
+    OffsetLt(ID, ID, ID),
 
     F64Add(ID, ID, ID),
     F64Sub(ID, ID, ID),
@@ -95,6 +100,10 @@ pub fn int64(x: i64) -> Data {
 
 pub fn float64(x: f64) -> Data {
     Data(f64::to_ne_bytes(x).to_vec())
+}
+
+pub fn bool(x: bool) -> Data {
+    Data(vec![x as u8])
 }
 
 pub fn offset(x: isize) -> Data {
