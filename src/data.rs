@@ -5,8 +5,13 @@ use std::rc::Rc;
 // locals and globals are all references
 // dest, src, [src]
 
+pub const F64_SIZE : usize = std::mem::size_of::<f64>();
+pub const I64_SIZE : usize = std::mem::size_of::<i64>();
 pub const PTR_SIZE : usize = std::mem::size_of::<usize>();
 pub const OFFSET_SIZE : usize = std::mem::size_of::<isize>();
+
+#[derive(Debug)]
+pub struct Data(pub (crate) Vec<u8>);
 
 #[derive(Debug)]
 pub enum Op<ID> {
@@ -21,7 +26,8 @@ pub enum Op<ID> {
     Yield(ID),
 
     // usize here is offset
-    DataToHeap(ID, usize, Vec<u8>),
+    DataToHeap(ID, usize, Data),
+    PtrToHeap(ID, ID),
     // TODO need to be able to set ptr value on stack and heap
     // ref, offset, ref, offset, length
     CopyData(ID, usize, ID, usize, usize),
@@ -41,6 +47,13 @@ pub enum Op<ID> {
     // TODO Offset add, sub, mul (div/mod?)
 
     // TODO also need to bring pointer value from heap to stack
+
+    OffsetAdd(ID, ID, ID),
+    OffsetSub(ID, ID, ID),
+    OffsetMul(ID, ID, ID),
+    OffsetDiv(ID, ID, ID),
+    OffsetExp(ID, ID, ID),
+    OffsetNeg(ID, ID),
 
     F64Add(ID, ID, ID),
     F64Sub(ID, ID, ID),
@@ -78,6 +91,18 @@ pub enum Op<ID> {
     // TODO shift
 
     Nop,
+}
+
+pub fn int64(x: i64) -> Data {
+    Data(i64::to_ne_bytes(x).to_vec())
+}
+
+pub fn float64(x: f64) -> Data {
+    Data(f64::to_ne_bytes(x).to_vec())
+}
+
+pub fn offset(x: isize) -> Data {
+    Data(isize::to_ne_bytes(x).to_vec())
 }
 
 #[derive(Debug)]
