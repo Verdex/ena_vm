@@ -66,7 +66,7 @@ impl Vm {
                     let addr = self.current.locals[x];
                     if let Some(f) = self.frames.pop() {
                         ret = Some(addr); 
-                        todo!()
+                        todo!() // TODO
                     }
                     else {
                         return Ok(addr);
@@ -86,19 +86,19 @@ impl Vm {
                     self.current.ip += 1;
                 },
                 Op::OffsetAdd(dest, a, b) => {
-                    self.bin_math(dest, a, b, isize::from_ne_bytes, isize::to_ne_bytes, |x, y| x + y)?;
+                    self.bin_math(dest, a, b, |x:isize, y:isize| x + y)?;
                     self.current.ip += 1;
                 },
                 Op::OffsetSub(dest, a, b) => {
-                    self.bin_math(dest, a, b, isize::from_ne_bytes, isize::to_ne_bytes, |x, y| x - y)?;
+                    self.bin_math(dest, a, b, |x:isize, y:isize| x + y)?;
                     self.current.ip += 1;
                 },
                 Op::OffsetMul(dest, a, b) => {
-                    self.bin_math(dest, a, b, isize::from_ne_bytes, isize::to_ne_bytes, |x, y| x * y)?;
+                    self.bin_math(dest, a, b, |x:isize, y:isize| x + y)?;
                     self.current.ip += 1;
                 },
                 Op::OffsetDiv(dest, a, b) => {
-                    self.bin_math(dest, a, b, isize::from_ne_bytes, isize::to_ne_bytes, |x, y| x / y)?;
+                    self.bin_math(dest, a, b, |x:isize, y:isize| x + y)?;
                     self.current.ip += 1;
                 },
                 Op::OffsetNeg(dest, x) => {
@@ -106,23 +106,23 @@ impl Vm {
                     self.current.ip += 1;
                 },
                 Op::F64Add(dest, a, b) => {  
-                    self.bin_math(dest, a, b, f64::from_ne_bytes, f64::to_ne_bytes, |x, y| x + y)?;
+                    self.bin_math(dest, a, b, |x:f64, y:f64| x + y)?;
                     self.current.ip += 1;
                 },
                 Op::F64Sub(dest, a, b) => { 
-                    self.bin_math(dest, a, b, f64::from_ne_bytes, f64::to_ne_bytes, |x, y| x - y)?;
+                    self.bin_math(dest, a, b, |x:f64, y:f64| x - y)?;
                     self.current.ip += 1;
                 },
                 Op::F64Mul(dest, a, b) => { 
-                    self.bin_math(dest, a, b, f64::from_ne_bytes, f64::to_ne_bytes, |x, y| x * y)?;
+                    self.bin_math(dest, a, b, |x:f64, y:f64| x * y)?;
                     self.current.ip += 1;
                 },
                 Op::F64Div(dest, a, b) => { 
-                    self.bin_math(dest, a, b, f64::from_ne_bytes, f64::to_ne_bytes, |x, y| x / y)?;
+                    self.bin_math(dest, a, b, |x:f64, y:f64| x / y)?;
                     self.current.ip += 1;
                 },
                 Op::F64Exp(dest, a, b) => { 
-                    self.bin_math(dest, a, b, f64::from_ne_bytes, f64::to_ne_bytes, |x, y| x.powf(y))?;
+                    self.bin_math(dest, a, b, |x:f64, y:f64| x.powf(y))?;
                     self.current.ip += 1;
                 },
                 Op::F64Neg(dest, x) => { 
@@ -140,23 +140,23 @@ impl Vm {
                     self.current.ip += 1;
                 },
                 Op::I64Add(dest, a, b) => { 
-                    self.bin_math(dest, a, b, i64::from_ne_bytes, i64::to_ne_bytes, |x, y| x + y)?;
+                    self.bin_math(dest, a, b, |x:i64, y:i64| x + y)?;
                     self.current.ip += 1;
                 },
                 Op::I64Sub(dest, a, b) => { 
-                    self.bin_math(dest, a, b, i64::from_ne_bytes, i64::to_ne_bytes, |x, y| x - y)?;
+                    self.bin_math(dest, a, b, |x:i64, y:i64| x - y)?;
                     self.current.ip += 1;
                 },
                 Op::I64Mul(dest, a, b) => { 
-                    self.bin_math(dest, a, b, i64::from_ne_bytes, i64::to_ne_bytes, |x, y| x * y)?;
+                    self.bin_math(dest, a, b, |x:i64, y:i64| x * y)?;
                     self.current.ip += 1;
                 },
                 Op::I64Div(dest, a, b) => { 
-                    self.bin_math(dest, a, b, i64::from_ne_bytes, i64::to_ne_bytes, |x, y| x / y)?;
+                    self.bin_math(dest, a, b, |x:i64, y:i64| x / y)?;
                     self.current.ip += 1;
                 },
                 Op::I64Mod(dest, a, b) => { 
-                    self.bin_math(dest, a, b, i64::from_ne_bytes, i64::to_ne_bytes, |x, y| x % y)?;
+                    self.bin_math(dest, a, b, |x:i64, y:i64| x % y)?;
                     self.current.ip += 1;
                 },
                 Op::I64Neg(dest, x) => { 
@@ -205,36 +205,34 @@ impl Vm {
         Ok(())
     }
 
-    fn bin_math<T, const S: usize>(&mut self, 
+    fn bin_math<T1: Byteable<S1>, T2: Byteable<S2>, const S1: usize, const S2: usize>(&mut self, 
         dest: usize, 
         a: usize, 
         b: usize, 
-        from: fn([u8; S]) -> T, 
-        to : fn(T) -> [u8; S],
-        op: fn(T, T) -> T) -> Result<(), VmError> {
+        op: fn(T1, T2) -> T1) -> Result<(), VmError> {
 
         let a_addr = self.current.locals[a];
         let b_addr = self.current.locals[b];
         let dest_addr = self.current.locals[dest];
 
-        if a_addr + S >= self.memory.len() {
+        if a_addr + S1 >= self.memory.len() {
             return Err(VmError::MemoryAccessOutOfRange(a_addr, self.stack_trace()));
         }
-        if b_addr + S >= self.memory.len() {
+        if b_addr + S2 >= self.memory.len() {
             return Err(VmError::MemoryAccessOutOfRange(b_addr, self.stack_trace()));
         }
-        let a : [u8; S] = self.memory[a_addr  .. a_addr + S].try_into().unwrap();
-        let b : [u8; S] = self.memory[b_addr  .. b_addr + S].try_into().unwrap();
+        let a : [u8; S1] = self.memory[a_addr  .. a_addr + S1].try_into().unwrap();
+        let b : [u8; S2] = self.memory[b_addr  .. b_addr + S2].try_into().unwrap();
 
-        let a = from(a);
-        let b = from(b);
+        let a = Byteable::<S1>::from(a);
+        let b = Byteable::<S2>::from(b);
 
-        let answer = to( op(a, b) );
+        let answer = op(a, b).to();
 
-        if dest_addr + S > self.memory.len() {
-            return Err(VmError::SetMemoryOutOfRange(dest_addr, S, self.stack_trace()));
+        if dest_addr + S1 > self.memory.len() {
+            return Err(VmError::SetMemoryOutOfRange(dest_addr, S1, self.stack_trace()));
         }
-        self.memory[dest_addr .. dest_addr + S].copy_from_slice(&answer);
+        self.memory[dest_addr .. dest_addr + S1].copy_from_slice(&answer);
         Ok(())
     }
 
