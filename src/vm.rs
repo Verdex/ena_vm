@@ -1,5 +1,6 @@
 
 use std::rc::Rc;
+use crate::byteable::Byteable;
 use crate::data::{Op, CompiledProc, VmError, StackTrace };
 
 

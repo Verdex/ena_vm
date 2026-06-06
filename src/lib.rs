@@ -1,4 +1,5 @@
 
+pub mod byteable;
 pub mod data;
 pub mod vm;
 
