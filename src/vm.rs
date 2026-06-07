@@ -165,13 +165,15 @@ impl Vm {
                     self.current.ip += 1;
                 },
                 Op::I64Eq(dest, a, b) => {
+                    self.bin_math(dest, a, b, |x:i64, y:i64| Some(x == y))?;
                     self.current.ip += 1;
                 },
                 Op::I64Gt(dest, a, b) => { 
+                    self.bin_math(dest, a, b, |x:i64, y:i64| Some(x > y))?;
                     self.current.ip += 1;
                 },
                 Op::I64Lt(dest, a, b) => { 
-
+                    self.bin_math(dest, a, b, |x:i64, y:i64| Some(x < y))?;
                     self.current.ip += 1;
                 },
 
@@ -206,7 +208,9 @@ impl Vm {
         Ok(())
     }
 
-    fn bin_math<T1: Byteable<S1>, T2: Byteable<S2>, F: Fn(T1, T2) -> Option<T1>, const S1: usize, const S2: usize>(
+    fn bin_math<T1: Byteable<S1>, T2: Byteable<S2>, T3: Byteable<S3>, 
+                F: Fn(T1, T2) -> Option<T3>, 
+                const S1: usize, const S2: usize, const S3: usize>(
         &mut self, dest: usize, a: usize, b: usize, op: F) -> Result<(), VmError> {
 
         let a = self.deref(a)?;
