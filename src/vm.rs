@@ -103,7 +103,7 @@ impl Vm {
                     self.current.ip += 1;
                 },
                 Op::OffsetNeg(dest, x) => {
-                    self.uni_math(dest, x, isize::from_ne_bytes, isize::to_ne_bytes, |x| -x)?;
+                    self.uni_math(dest, x, |x:isize| -x)?;
                     self.current.ip += 1;
                 },
                 Op::F64Add(dest, a, b) => {  
@@ -127,7 +127,7 @@ impl Vm {
                     self.current.ip += 1;
                 },
                 Op::F64Neg(dest, x) => { 
-                    self.uni_math(dest, x, f64::from_ne_bytes, f64::to_ne_bytes, |x| -x)?;
+                    self.uni_math(dest, x, |x:f64| -x)?;
                     self.current.ip += 1;
                 },
                 Op::F64Eq(dest, a, b) => { 
@@ -161,7 +161,7 @@ impl Vm {
                     self.current.ip += 1;
                 },
                 Op::I64Neg(dest, x) => { 
-                    self.uni_math(dest, x, i64::from_ne_bytes, i64::to_ne_bytes, |x| -x)?;
+                    self.uni_math(dest, x, |x:i64| -x)?;
                     self.current.ip += 1;
                 },
                 Op::I64Eq(dest, a, b) => {
@@ -182,29 +182,14 @@ impl Vm {
         }
     }
 
-    fn uni_math<T, const S: usize>(&mut self, 
+    fn uni_math<T: Byteable<S>, const S: usize>(&mut self, 
         dest: usize, 
         x: usize, 
-        from: fn([u8; S]) -> T, 
-        to : fn(T) -> [u8; S],
         op: fn(T) -> T) -> Result<(), VmError> {
 
-        let x_addr = self.current.locals[x];
-        let dest_addr = self.current.locals[dest];
-
-        if x_addr + S >= self.memory.len() {
-            return Err(VmError::MemoryAccessOutOfRange(x_addr, self.stack_trace()));
-        }
-        let x : [u8; S] = self.memory[x_addr  .. x_addr + S].try_into().unwrap();
-
-        let x = from(x);
-
-        let answer = to( op(x) );
-
-        if dest_addr + S > self.memory.len() {
-            return Err(VmError::SetMemoryOutOfRange(dest_addr, S, self.stack_trace()));
-        }
-        self.memory[dest_addr .. dest_addr + S].copy_from_slice(&answer);
+        let x = self.deref(x)?;
+        let answer = op(x).to();
+        self.set_deref(dest, &answer)?;
         Ok(())
     }
 
