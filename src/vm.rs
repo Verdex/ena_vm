@@ -73,9 +73,13 @@ impl Vm {
                     }
                 },
                 Op::LocalPtrAdd(dest, ptr, offset) => {
+                    let offset : isize = self.deref(offset)?;
+                    self.current.locals[dest] = self.current.locals[ptr].checked_add_signed(offset).ok_or(VmError::BinMathOp(self.stack_trace()))?;
                     self.current.ip += 1;
                 },
                 Op::LocalPtrSub(dest, ptr, offset) => {
+                    let offset : isize = self.deref(offset)?;
+                    self.current.locals[dest] = self.current.locals[ptr].checked_sub_signed(offset).ok_or(VmError::BinMathOp(self.stack_trace()))?;
                     self.current.ip += 1;
                 },
                 Op::PtrAdd(dest, ptr, offset) => {
@@ -106,6 +110,18 @@ impl Vm {
                     self.uni_math(dest, x, |x:isize| -x)?;
                     self.current.ip += 1;
                 },
+                Op::OffsetEq(dest, a, b) => {
+                    self.bin_math(dest, a, b, |x:isize, y:isize| Some(x == y))?;
+                    self.current.ip += 1;
+                },
+                Op::OffsetGt(dest, a, b) => {
+                    self.bin_math(dest, a, b, |x:isize, y:isize| Some(x > y))?;
+                    self.current.ip += 1;
+                },
+                Op::OffsetLt(dest, a, b) => {
+                    self.bin_math(dest, a, b, |x:isize, y:isize| Some(x < y))?;
+                    self.current.ip += 1;
+                },
                 Op::F64Add(dest, a, b) => {  
                     self.bin_math(dest, a, b, |x:f64, y:f64| Some(x + y))?;
                     self.current.ip += 1;
@@ -131,13 +147,15 @@ impl Vm {
                     self.current.ip += 1;
                 },
                 Op::F64Eq(dest, a, b) => { 
-                    
+                    self.bin_math(dest, a, b, |x:f64, y:f64| Some(x == y))?; 
                     self.current.ip += 1;
                 },
                 Op::F64Gt(dest, a, b) => {
+                    self.bin_math(dest, a, b, |x:f64, y:f64| Some(x > y))?; 
                     self.current.ip += 1;
                 },
                 Op::F64Lt(dest, a, b) => { 
+                    self.bin_math(dest, a, b, |x:f64, y:f64| Some(x < y))?; 
                     self.current.ip += 1;
                 },
                 Op::I64Add(dest, a, b) => { 
