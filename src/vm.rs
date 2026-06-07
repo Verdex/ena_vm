@@ -83,6 +83,7 @@ impl Vm {
                     self.current.ip += 1;
                 },
                 Op::PtrSub(dest, ptr, offset) => {
+                    self.bin_math(dest, ptr, offset, |x:usize, y:isize| x.checked_sub_signed(y))?;
                     self.current.ip += 1;
                 },
                 Op::OffsetAdd(dest, a, b) => {
