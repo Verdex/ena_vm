@@ -209,32 +209,25 @@ impl Vm {
     fn bin_math<T1: Byteable<S1>, T2: Byteable<S2>, F: Fn(T1, T2) -> Option<T1>, const S1: usize, const S2: usize>(
         &mut self, dest: usize, a: usize, b: usize, op: F) -> Result<(), VmError> {
 
-        let a_addr = self.current.locals[a];
-        let b_addr = self.current.locals[b];
-        let dest_addr = self.current.locals[dest];
-
-        if a_addr + S1 > self.memory.len() {
-            return Err(VmError::MemoryAccessOutOfRange(a_addr, self.stack_trace()));
-        }
-        if b_addr + S2 > self.memory.len() {
-            return Err(VmError::MemoryAccessOutOfRange(b_addr, self.stack_trace()));
-        }
-        let a : [u8; S1] = self.memory[a_addr  .. a_addr + S1].try_into().unwrap();
-        let b : [u8; S2] = self.memory[b_addr  .. b_addr + S2].try_into().unwrap();
-
-        let a = Byteable::<S1>::from(a);
-        let b = Byteable::<S2>::from(b);
+        let a = self.deref(a)?;
+        let b = self.deref(b)?;
 
         let answer = op(a, b).ok_or(VmError::BinMathOp(self.stack_trace()))?.to();
 
-        if dest_addr + S1 > self.memory.len() {
-            return Err(VmError::SetMemoryOutOfRange(dest_addr, S1, self.stack_trace()));
-        }
-        self.memory[dest_addr .. dest_addr + S1].copy_from_slice(&answer);
+        self.set_deref(dest, &answer)?;
         Ok(())
     }
 
-    fn deref<T: Byteable<S>, const S: usize>(&mut self, local: usize) -> Result<T, VmError> {
+    fn set_deref(&mut self, dest: usize, value: &[u8]) -> Result<(), VmError> {
+        let dest_addr = self.current.locals[dest];
+        if dest_addr + value.len() > self.memory.len() {
+            return Err(VmError::SetMemoryOutOfRange(dest_addr, value.len(), self.stack_trace()));
+        }
+        self.memory[dest_addr .. dest_addr + value.len()].copy_from_slice(&value);
+        Ok(())
+    }
+
+    fn deref<T: Byteable<S>, const S: usize>(&self, local: usize) -> Result<T, VmError> {
         let addr = self.current.locals[local];
         if addr + S > self.memory.len() {
             return Err(VmError::MemoryAccessOutOfRange(addr, self.stack_trace()));
