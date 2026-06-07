@@ -133,6 +133,7 @@ pub enum VmError {
     InstrPointerOutOfRange(usize, StackTrace),
     MemoryAccessOutOfRange(usize, StackTrace),
     SetMemoryOutOfRange(usize, usize, StackTrace),
+    BinMathOp(StackTrace),
 }
 
 impl std::fmt::Display for VmError {
@@ -145,6 +146,7 @@ impl std::fmt::Display for VmError {
             VmError::InstrPointerOutOfRange(ip, st) => write!(f, "encountered instruction pointer past proc length: {}\n{}", ip, d(st)),
             VmError::MemoryAccessOutOfRange(addr, st) => write!(f, "memory access out of range: {}\n{}", addr, d(st)),
             VmError::SetMemoryOutOfRange(addr, len, st) => write!(f, "set memory out of range: {} of length: {}\n{}", addr, len, d(st)),
+            VmError::BinMathOp(st) => write!(f, "error with binary operator\n{}", d(st)),
         }
     }
 }

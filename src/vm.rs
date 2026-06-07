@@ -79,26 +79,26 @@ impl Vm {
                     self.current.ip += 1;
                 },
                 Op::PtrAdd(dest, ptr, offset) => {
-
+                    self.bin_math(dest, ptr, offset, |x:usize, y:isize| x.checked_add_signed(y))?;
                     self.current.ip += 1;
                 },
                 Op::PtrSub(dest, ptr, offset) => {
                     self.current.ip += 1;
                 },
                 Op::OffsetAdd(dest, a, b) => {
-                    self.bin_math(dest, a, b, |x:isize, y:isize| x + y)?;
+                    self.bin_math(dest, a, b, |x:isize, y:isize| Some(x + y))?;
                     self.current.ip += 1;
                 },
                 Op::OffsetSub(dest, a, b) => {
-                    self.bin_math(dest, a, b, |x:isize, y:isize| x + y)?;
+                    self.bin_math(dest, a, b, |x:isize, y:isize| Some(x - y))?;
                     self.current.ip += 1;
                 },
                 Op::OffsetMul(dest, a, b) => {
-                    self.bin_math(dest, a, b, |x:isize, y:isize| x + y)?;
+                    self.bin_math(dest, a, b, |x:isize, y:isize| Some(x * y))?;
                     self.current.ip += 1;
                 },
                 Op::OffsetDiv(dest, a, b) => {
-                    self.bin_math(dest, a, b, |x:isize, y:isize| x + y)?;
+                    self.bin_math(dest, a, b, |x:isize, y:isize| Some(x / y))?;
                     self.current.ip += 1;
                 },
                 Op::OffsetNeg(dest, x) => {
@@ -106,23 +106,23 @@ impl Vm {
                     self.current.ip += 1;
                 },
                 Op::F64Add(dest, a, b) => {  
-                    self.bin_math(dest, a, b, |x:f64, y:f64| x + y)?;
+                    self.bin_math(dest, a, b, |x:f64, y:f64| Some(x + y))?;
                     self.current.ip += 1;
                 },
                 Op::F64Sub(dest, a, b) => { 
-                    self.bin_math(dest, a, b, |x:f64, y:f64| x - y)?;
+                    self.bin_math(dest, a, b, |x:f64, y:f64| Some(x - y))?;
                     self.current.ip += 1;
                 },
                 Op::F64Mul(dest, a, b) => { 
-                    self.bin_math(dest, a, b, |x:f64, y:f64| x * y)?;
+                    self.bin_math(dest, a, b, |x:f64, y:f64| Some(x * y))?;
                     self.current.ip += 1;
                 },
                 Op::F64Div(dest, a, b) => { 
-                    self.bin_math(dest, a, b, |x:f64, y:f64| x / y)?;
+                    self.bin_math(dest, a, b, |x:f64, y:f64| Some(x / y))?;
                     self.current.ip += 1;
                 },
                 Op::F64Exp(dest, a, b) => { 
-                    self.bin_math(dest, a, b, |x:f64, y:f64| x.powf(y))?;
+                    self.bin_math(dest, a, b, |x:f64, y:f64| Some(x.powf(y)))?;
                     self.current.ip += 1;
                 },
                 Op::F64Neg(dest, x) => { 
@@ -140,23 +140,23 @@ impl Vm {
                     self.current.ip += 1;
                 },
                 Op::I64Add(dest, a, b) => { 
-                    self.bin_math(dest, a, b, |x:i64, y:i64| x + y)?;
+                    self.bin_math(dest, a, b, |x:i64, y:i64| Some(x + y))?;
                     self.current.ip += 1;
                 },
                 Op::I64Sub(dest, a, b) => { 
-                    self.bin_math(dest, a, b, |x:i64, y:i64| x - y)?;
+                    self.bin_math(dest, a, b, |x:i64, y:i64| Some(x - y))?;
                     self.current.ip += 1;
                 },
                 Op::I64Mul(dest, a, b) => { 
-                    self.bin_math(dest, a, b, |x:i64, y:i64| x * y)?;
+                    self.bin_math(dest, a, b, |x:i64, y:i64| Some(x * y))?;
                     self.current.ip += 1;
                 },
                 Op::I64Div(dest, a, b) => { 
-                    self.bin_math(dest, a, b, |x:i64, y:i64| x / y)?;
+                    self.bin_math(dest, a, b, |x:i64, y:i64| Some(x / y))?;
                     self.current.ip += 1;
                 },
                 Op::I64Mod(dest, a, b) => { 
-                    self.bin_math(dest, a, b, |x:i64, y:i64| x % y)?;
+                    self.bin_math(dest, a, b, |x:i64, y:i64| Some(x % y))?;
                     self.current.ip += 1;
                 },
                 Op::I64Neg(dest, x) => { 
@@ -205,11 +205,8 @@ impl Vm {
         Ok(())
     }
 
-    fn bin_math<T1: Byteable<S1>, T2: Byteable<S2>, const S1: usize, const S2: usize>(&mut self, 
-        dest: usize, 
-        a: usize, 
-        b: usize, 
-        op: fn(T1, T2) -> T1) -> Result<(), VmError> {
+    fn bin_math<T1: Byteable<S1>, T2: Byteable<S2>, F: Fn(T1, T2) -> Option<T1>, const S1: usize, const S2: usize>(
+        &mut self, dest: usize, a: usize, b: usize, op: F) -> Result<(), VmError> {
 
         let a_addr = self.current.locals[a];
         let b_addr = self.current.locals[b];
@@ -227,7 +224,7 @@ impl Vm {
         let a = Byteable::<S1>::from(a);
         let b = Byteable::<S2>::from(b);
 
-        let answer = op(a, b).to();
+        let answer = op(a, b).ok_or(VmError::BinMathOp(self.stack_trace()))?.to();
 
         if dest_addr + S1 > self.memory.len() {
             return Err(VmError::SetMemoryOutOfRange(dest_addr, S1, self.stack_trace()));
