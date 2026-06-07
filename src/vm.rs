@@ -213,10 +213,10 @@ impl Vm {
         let b_addr = self.current.locals[b];
         let dest_addr = self.current.locals[dest];
 
-        if a_addr + S1 >= self.memory.len() {
+        if a_addr + S1 > self.memory.len() {
             return Err(VmError::MemoryAccessOutOfRange(a_addr, self.stack_trace()));
         }
-        if b_addr + S2 >= self.memory.len() {
+        if b_addr + S2 > self.memory.len() {
             return Err(VmError::MemoryAccessOutOfRange(b_addr, self.stack_trace()));
         }
         let a : [u8; S1] = self.memory[a_addr  .. a_addr + S1].try_into().unwrap();
