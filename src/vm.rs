@@ -252,6 +252,28 @@ mod test {
     use super::*;
 
     #[test]
+    fn should_handle_single_local_actions() {
+        // Note:  Make sure that an item at the beginning and end of memory can be
+        // set and retrieved
+        let procs = vec![CompiledProc { 
+            name: "main".into(),
+            slot_names: vec![],
+            instrs: vec![
+                Op::AllocateData(0, 8),
+                Op::DataToHeap(0, data::int64(3)),
+                Op::I64Add(0, 0, 0),
+                Op::ReturnLocal(0),
+            ],
+            frame_size: 3,
+        } ];
+        let mut vm = Vm::new(procs);
+        let addr = vm.run(0).unwrap(); 
+        let x : [u8; 8] = vm.memory[addr .. addr + 8].try_into().unwrap();
+        let x = i64::from_ne_bytes(x);
+        assert_eq!(x, 6);
+    }
+
+    #[test]
     fn should_handle_two_param_math_op() {
         let procs = vec![CompiledProc { 
             name: "main".into(),
