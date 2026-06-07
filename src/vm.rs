@@ -234,6 +234,16 @@ impl Vm {
         Ok(())
     }
 
+    fn deref<T: Byteable<S>, const S: usize>(&mut self, local: usize) -> Result<T, VmError> {
+        let addr = self.current.locals[local];
+        if addr + S > self.memory.len() {
+            return Err(VmError::MemoryAccessOutOfRange(addr, self.stack_trace()));
+        }
+        let value : [u8; S] = self.memory[addr  .. addr + S].try_into().unwrap();
+        let value = Byteable::<S>::from(value);
+        Ok(value)
+    }
+
     fn stack_trace(&self) -> StackTrace {
         // Note:  Previous frames will have already incremented past the current call op
         self.frames.iter().map(|x| (x.id, x.ip - 1))
