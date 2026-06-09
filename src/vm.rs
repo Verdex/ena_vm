@@ -78,7 +78,7 @@ impl Vm {
                     let addr = self.current.locals[x];
                     if let Some(f) = self.frames.pop() {
                         ret = Some(addr); 
-                        todo!() // TODO
+                        self.current = f;
                     }
                     else {
                         return Ok(addr);
