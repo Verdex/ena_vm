@@ -194,7 +194,26 @@ impl Vm {
                     self.bin_math(dest, a, b, |x:i64, y:i64| Some(x < y))?;
                     self.current.ip += 1;
                 },
-
+                Op::LNot(dest, x) => {
+                    self.uni_math(dest, x, |x:bool| !x)?;
+                    self.current.ip += 1;
+                },
+                Op::LAnd(dest, a, b) => {
+                    self.bin_math(dest, a, b, |x:bool, y:bool| Some(x && y))?;
+                    self.current.ip += 1;
+                },
+                Op::LOr(dest, a, b) => {
+                    self.bin_math(dest, a, b, |x:bool, y:bool| Some(x || y))?;
+                    self.current.ip += 1;
+                },
+                Op::LXor(dest, a, b) => {
+                    self.bin_math(dest, a, b, |x:bool, y:bool| Some(x ^ y))?;
+                    self.current.ip += 1;
+                },
+                Op::LEq(dest, a, b) => {
+                    self.bin_math(dest, a, b, |x:bool, y:bool| Some(x == y))?;
+                    self.current.ip += 1;
+                },
                 _ => todo!(),
             }
         }

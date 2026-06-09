@@ -79,17 +79,11 @@ pub enum Op<ID> {
     I64Gt(ID, ID, ID),
     I64Lt(ID, ID, ID),
 
-    // TODO ??
     LNot(ID, ID),
     LAnd(ID, ID, ID),
     LOr(ID, ID, ID),
     LXor(ID, ID, ID),
-
-    BNot(ID, ID),
-    BAnd(ID, ID, ID),
-    BOr(ID, ID, ID),
-    BXor(ID, ID, ID),
-    // TODO shift
+    LEq(ID, ID, ID),
 
     Nop,
 }
