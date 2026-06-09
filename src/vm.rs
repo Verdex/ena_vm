@@ -39,11 +39,23 @@ impl Vm {
         loop {
             if self.current.ip >= self.procs[self.current.id].instrs.len() {
                 // TODO: with the right construction of compiled proc this might not have to be
-                // something that is even checked
+                // something that is even checked (will need to reject procs without returns)
                 return Err(VmError::InstrPointerOutOfRange(self.current.ip, self.stack_trace()));
             }
 
             match self.procs[self.current.id].instrs[self.current.ip] {
+                Op::Jump(label) => {
+                    self.current.ip = label;
+                },
+                Op::BranchTrue(label, local) => {
+                    let test = self.deref(local)?;
+                    if test {
+                        self.current.ip = label; 
+                    }
+                    else {
+                        self.current.ip += 1;
+                    }
+                },
                 Op::AllocateData(x, size) => {
                     let len = self.memory.len();
                     self.memory.append(&mut vec![0; size]);
@@ -71,6 +83,45 @@ impl Vm {
                     else {
                         return Ok(addr);
                     }
+                },
+                Op::Call(fun, ref params) => {
+                    let params_len = params.len();
+                    let locals = params.iter()
+                                       .map(|x| self.current.locals[*x])
+                                       .chain(std::iter::repeat(0).take(self.procs[fun].frame_size - params_len))
+                                       .collect();
+
+                    self.current.ip += 1;
+                    
+                    let new = Frame { 
+                        id: fun, 
+                        ip: 0,
+                        locals,
+                    };
+
+                    let old = std::mem::replace(&mut self.current, new);
+
+                    self.frames.push(old);
+                },
+                Op::DynCall(local, ref params) => {
+                    let fun : usize = self.deref(local)?;
+                    let params_len = params.len();
+                    let locals = params.iter()
+                                       .map(|x| self.current.locals[*x])
+                                       .chain(std::iter::repeat(0).take(self.procs[fun].frame_size - params_len))
+                                       .collect();
+
+                    self.current.ip += 1;
+                    
+                    let new = Frame { 
+                        id: fun, 
+                        ip: 0,
+                        locals,
+                    };
+
+                    let old = std::mem::replace(&mut self.current, new);
+
+                    self.frames.push(old);
                 },
                 Op::LocalPtrAdd(dest, ptr, offset) => {
                     let offset : isize = self.deref(offset)?;

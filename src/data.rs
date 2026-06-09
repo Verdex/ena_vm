@@ -18,7 +18,7 @@ pub struct Data(pub (crate) Vec<u8>);
 pub enum Op<ID> {
 
     Jump(ID),
-    BranchNotZero(ID, ID),
+    BranchTrue(ID, ID),
 
     AllocateData(ID, usize),
     // TODO whether or not we need to use ret probably depends on the execution strat here
