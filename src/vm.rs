@@ -74,6 +74,20 @@ impl Vm {
                     self.memory[addr .. addr + data.len()].copy_from_slice(data);
                     self.current.ip += 1;
                 },
+                Op::PtrToHeap(dest, x) => {
+                    let x = self.current.locals[x].to();
+                    self.set_deref(dest, &x)?;
+                    self.current.ip += 1;
+                },
+                Op::PtrFromHeap(dest, x) => {
+                    let ptr : usize = self.deref(x)?;
+                    self.current.locals[dest] = ptr;
+                    self.current.ip += 1;
+                },
+                Op::CopyDataInHeap(_, _, len) => {
+                    // TODO
+                    self.current.ip += 1;
+                },
                 Op::ReturnLocal(x) => { 
                     let addr = self.current.locals[x];
                     if let Some(f) = self.frames.pop() {

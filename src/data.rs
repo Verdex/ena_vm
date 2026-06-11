@@ -14,6 +14,9 @@ pub const BOOL_SIZE : usize = std::mem::size_of::<bool>();
 #[derive(Debug)]
 pub struct Data(pub (crate) Vec<u8>);
 
+// TODO: Data can be a type parameter and then it can be compiled into a 'text' section that's moved
+// to memory before the main loop starts
+// Then it'll be something like Op<usize, usize>
 #[derive(Debug)]
 pub enum Op<ID> {
 
@@ -22,14 +25,14 @@ pub enum Op<ID> {
 
     AllocateData(ID, usize),
     // TODO whether or not we need to use ret probably depends on the execution strat here
-    Coroutine(ID, Vec<ID>),
+    Coroutine(ID, Vec<ID>), 
     Resume(ID),
     Yield(ID),
 
     DataToHeap(ID, Data),
     PtrToHeap(ID, ID),
     PtrFromHeap(ID, ID),
-    CopyData(ID, ID, usize),
+    CopyDataInHeap(ID, ID, usize),
 
     ReturnLocal(ID), 
     SetLocalFromReturn(ID),
