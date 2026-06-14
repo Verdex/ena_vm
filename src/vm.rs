@@ -1,8 +1,7 @@
 
 use std::rc::Rc;
 use crate::byteable::Byteable;
-use crate::data::{Op, CompiledProc, VmError, StackTrace };
-
+use crate::data::{Op, CompiledProc, VmError, StackTrace};
 
 struct Frame {
     id: usize,
@@ -59,13 +58,27 @@ impl Vm {
                     }
                 },
                 Op::AllocateData(x, size) => {
-                    let len = self.memory.len();
-                    self.memory.append(&mut vec![0; size]);
-                    self.current.locals[x] = len;
+                    let addr = self.allocate(vec![0; size]);
+                    self.current.locals[x] = addr;
                     self.current.ip += 1;
                 },
-                Op::Coroutine(_, ref _params) => {
-                    // TODO
+                Op::Coroutine(dest, proc, ref params) => {
+                    // Status: usize
+                    // created = 0
+                    // running = 1
+                    // finished = 2
+                    // created | proc: usize | param_len: usize | params (list of usize)
+                    // running | proc: usize | ip: usize | local_len: usize | locals (list of usize)
+                    // finished | proc: usize
+
+                    let coroutine : Vec<u8> = 0usize.to().into_iter()
+                        .chain(proc.to())
+                        .chain(params.len().to())
+                        .chain(params.iter().flat_map(|x| x.to()))
+                        .collect();
+                    
+                    let addr = self.allocate(coroutine);
+                    self.current.locals[dest] = addr;
                 },
                 Op::Resume(_) => {
                     // TODO
@@ -372,6 +385,12 @@ impl Vm {
         let value : [u8; S] = self.memory[addr  .. addr + S].try_into().unwrap();
         let value = Byteable::<S>::from(value);
         Ok(value)
+    }
+
+    fn allocate(&mut self, mut data : Vec<u8>) -> usize {
+        let len = self.memory.len();
+        self.memory.append(&mut data);
+        return len;
     }
 
     fn stack_trace(&self) -> StackTrace {

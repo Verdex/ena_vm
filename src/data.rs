@@ -22,8 +22,7 @@ pub enum Op<ID> {
     BranchTrue(ID, ID),
 
     AllocateData(ID, usize),
-    // TODO whether or not we need to use ret probably depends on the execution strat here
-    Coroutine(ID, Vec<ID>), 
+    Coroutine(ID, ID, Vec<ID>), 
     Resume(ID),
     Yield(ID),
 
