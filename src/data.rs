@@ -131,6 +131,7 @@ pub enum VmError {
     MemoryAccessOutOfRange(usize, StackTrace),
     SetMemoryOutOfRange(usize, usize, StackTrace),
     BinMathOp(StackTrace),
+    ReturnDoesNotExist(StackTrace),
 }
 
 impl std::fmt::Display for VmError {
@@ -144,6 +145,7 @@ impl std::fmt::Display for VmError {
             VmError::MemoryAccessOutOfRange(addr, st) => write!(f, "memory access out of range: {}\n{}", addr, d(st)),
             VmError::SetMemoryOutOfRange(addr, len, st) => write!(f, "set memory out of range: {} of length: {}\n{}", addr, len, d(st)),
             VmError::BinMathOp(st) => write!(f, "error with binary operator\n{}", d(st)),
+            VmError::ReturnDoesNotExist(st) => write!(f, "Return does not exist\n{}", d(st)),
         }
     }
 }

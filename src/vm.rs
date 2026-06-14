@@ -14,6 +14,7 @@ pub struct Vm {
     memory: Vec<u8>,
     frames: Vec<Frame>, 
     procs: Vec<CompiledProc>,
+    globals: Vec<usize>,
     current: Frame,
 }
 
@@ -23,7 +24,8 @@ impl Vm {
             procs, 
             current: Frame { id: 0, ip: 0, locals: vec![] }, 
             frames: vec![], 
-            memory: vec![] 
+            memory: vec![],
+            globals: vec![],
         }
     }
 
@@ -62,6 +64,15 @@ impl Vm {
                     self.current.locals[x] = len;
                     self.current.ip += 1;
                 },
+                Op::Coroutine(_, ref _params) => {
+                    // TODO
+                },
+                Op::Resume(_) => {
+                    // TODO
+                },
+                Op::Yield(_) => {
+                    // TODO
+                },
                 Op::DataToHeap(x, ref data) => {
                     let data = &data.0;
                     let addr = self.current.locals[x];
@@ -84,8 +95,9 @@ impl Vm {
                     self.current.locals[dest] = ptr;
                     self.current.ip += 1;
                 },
-                Op::CopyDataInHeap(_, _, len) => {
-                    // TODO
+                Op::CopyDataInHeap(dest, x, len) => {
+                    let x = self.deref_vec(x, len)?;
+                    self.set_deref(dest, &x)?;
                     self.current.ip += 1;
                 },
                 Op::ReturnLocal(x) => { 
@@ -97,6 +109,31 @@ impl Vm {
                     else {
                         return Ok(addr);
                     }
+                },
+                Op::SetLocalFromReturn(dest) => {
+                    match ret {
+                        Some(x) => { self.current.locals[dest] = x; },
+                        None => { 
+                            return Err(VmError::ReturnDoesNotExist(self.stack_trace()));
+                        },
+                    }
+                    self.current.ip += 1;
+                },
+                Op::SetLocalFromLocal(dest, x) => {
+                    self.current.locals[dest] = self.current.locals[x];
+                    self.current.ip += 1;
+                },
+                Op::SetLocalFromProc(dest, proc) => {
+                    self.current.locals[dest] = proc;
+                    self.current.ip += 1;
+                },
+                Op::SetLocalFromGlobal(dest, x) => {
+                    self.current.locals[dest] = self.globals[x];
+                    self.current.ip += 1;
+                },
+                Op::SetGlobalFromLocal(dest, x) => {
+                    self.globals[dest] = self.current.locals[x];
+                    self.current.ip += 1;
                 },
                 Op::Call(fun, ref params) => {
                     let params_len = params.len();
@@ -279,7 +316,7 @@ impl Vm {
                     self.bin_math(dest, a, b, |x:bool, y:bool| Some(x == y))?;
                     self.current.ip += 1;
                 },
-                _ => todo!(),
+                Op::Nop => { self.current.ip += 1; },
             }
         }
     }
@@ -316,6 +353,15 @@ impl Vm {
         }
         self.memory[dest_addr .. dest_addr + value.len()].copy_from_slice(&value);
         Ok(())
+    }
+
+    fn deref_vec(&self, local: usize, len : usize) -> Result<Vec<u8>, VmError> {
+        let addr = self.current.locals[local];
+        if addr + len > self.memory.len() {
+            return Err(VmError::MemoryAccessOutOfRange(addr, self.stack_trace()));
+        }
+        let value : Vec<u8> = self.memory[addr  .. addr + len].try_into().unwrap();
+        Ok(value)
     }
 
     fn deref<T: Byteable<S>, const S: usize>(&self, local: usize) -> Result<T, VmError> {
