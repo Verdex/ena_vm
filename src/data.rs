@@ -19,6 +19,7 @@ pub struct Data(pub (crate) Vec<u8>);
 // Then it'll be something like Op<usize, usize>
 #[derive(Debug)]
 pub enum Op<ID> {
+    // TODO need a way to do "sys" calls
 
     Jump(ID),
     BranchTrue(ID, ID),
