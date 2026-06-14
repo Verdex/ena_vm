@@ -14,9 +14,6 @@ pub const BOOL_SIZE : usize = std::mem::size_of::<bool>();
 #[derive(Debug)]
 pub struct Data(pub (crate) Vec<u8>);
 
-// TODO: Data can be a type parameter and then it can be compiled into a 'text' section that's moved
-// to memory before the main loop starts
-// Then it'll be something like Op<usize, usize>
 #[derive(Debug)]
 pub enum Op<ID> {
     // TODO need a way to do "sys" calls
