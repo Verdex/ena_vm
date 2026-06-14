@@ -96,7 +96,7 @@ impl Vm {
                     self.current.ip += 1;
                 },
                 Op::CopyDataInHeap(dest, x, len) => {
-                    let x = self.deref_vec(x, len)?;
+                    let x = self.deref_bytes(x, len)?;
                     self.set_deref(dest, &x)?;
                     self.current.ip += 1;
                 },
@@ -355,7 +355,7 @@ impl Vm {
         Ok(())
     }
 
-    fn deref_vec(&self, local: usize, len : usize) -> Result<Vec<u8>, VmError> {
+    fn deref_bytes(&self, local: usize, len : usize) -> Result<Vec<u8>, VmError> {
         let addr = self.current.locals[local];
         if addr + len > self.memory.len() {
             return Err(VmError::MemoryAccessOutOfRange(addr, self.stack_trace()));
