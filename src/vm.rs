@@ -90,17 +90,32 @@ impl Vm {
                     // reused for the running buffer
                     //
 
+                    let running_size = {
+                        let status_size = std::mem::size_of::<usize>();
+                        let proc_size = std::mem::size_of::<usize>();
+                        let ip_size = std::mem::size_of::<usize>();
+                        let local_len_size = std::mem::size_of::<usize>();
+                        let locals_size = std::mem::size_of::<usize>() * self.procs[proc].frame_size;
+                        status_size + proc_size + ip_size + local_len_size + locals_size 
+                    };
 
-                    let coroutine : Vec<u8> = 0usize.to().into_iter()
+                    let mut coroutine : Vec<u8> = 0usize.to().into_iter()
                         .chain(proc.to())
                         .chain(params.len().to())
                         .chain(params.iter().flat_map(|x| x.to()))
                         .collect();
+
+                    if coroutine.len() < running_size {
+                        coroutine.append(&mut vec![0; running_size - coroutine.len()]);
+                    }
                     
                     let addr = self.allocate(coroutine);
                     self.current.locals[dest] = addr;
+                    self.current.ip += 1;
                 },
-                Op::Resume(_) => {
+                Op::Resume(x) => {
+                    let addr = self.current.locals[x];
+                    let status : usize = self.from_address(addr)?;
                     // TODO
                 },
                 Op::Yield(_) => {
