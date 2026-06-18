@@ -69,8 +69,12 @@ impl Vm {
                     self.current.locals[x] = addr;
                     self.current.ip += 1;
                 },
-                Op::DropMemory(ID) => {
-                     // TODO
+                Op::DropMemory(x) => {
+                    let x = self.current.locals[x];
+                    if x > self.memory.len() {
+                        return Err(VmError::MemoryDroppedOutOfRange { available: self.memory.len(), attempt: x, st: self.stack_trace() });
+                    }
+                    self.memory_len = x;
                     self.current.ip += 1;
                 },
                 Op::Coroutine(dest, proc, ref params) => {
