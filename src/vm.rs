@@ -31,6 +31,10 @@ impl Vm {
     }
 
     pub fn run(&mut self, entry : usize) -> Result<usize, VmError> {
+        const CO_CREATE : usize = 0;
+        const CO_RUN : usize = 1;
+        const CO_FINISH : usize = 2;
+
         if entry >= self.procs.len() {
             return Err(VmError::UnknownProcId(entry, self.stack_trace()));
         }
@@ -86,10 +90,6 @@ impl Vm {
                     // running | proc: usize | ip: usize | local_len: usize | locals (list of usize)
                     // finished | proc: usize
 
-                    // TODO Going to need to pad out this thing so that the created buffer can be
-                    // reused for the running buffer
-                    //
-
                     let running_size = {
                         let status_size = std::mem::size_of::<usize>();
                         let proc_size = std::mem::size_of::<usize>();
@@ -124,7 +124,7 @@ impl Vm {
                 Op::Finish(dest, coroutine) => {
                     let addr = self.current.locals[coroutine];
                     let status : usize = self.from_address(addr)?;
-                    if status == 2 {
+                    if status == CO_FINISH {
                         self.set_deref(dest, &true.to())?;
                     }
                     else {
