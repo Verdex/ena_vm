@@ -11,6 +11,7 @@ struct Frame {
 
 pub struct Vm {
     memory: Vec<u8>,
+    memory_len: usize,
     frames: Vec<Frame>, 
     procs: Vec<CompiledProc>,
     globals: Vec<usize>,
@@ -24,6 +25,7 @@ impl Vm {
             current: Frame { id: 0, ip: 0, locals: vec![] }, 
             frames: vec![], 
             memory: vec![],
+            memory_len: 0,
             globals: vec![],
         }
     }
@@ -62,6 +64,15 @@ impl Vm {
                     self.current.locals[x] = addr;
                     self.current.ip += 1;
                 },
+                Op::EndOfMemory(x) => {
+                    let addr = self.memory_len; 
+                    self.current.locals[x] = addr;
+                    self.current.ip += 1;
+                },
+                Op::DropMemory(ID) => {
+                     // TODO
+                    self.current.ip += 1;
+                },
                 Op::Coroutine(dest, proc, ref params) => {
                     // Status: usize
                     // created = 0
@@ -70,6 +81,9 @@ impl Vm {
                     // created | proc: usize | param_len: usize | params (list of usize)
                     // running | proc: usize | ip: usize | local_len: usize | locals (list of usize)
                     // finished | proc: usize
+
+                    // TODO Going to need to pad out this thing so that the created buffer can be
+                    // reused for the running buffer
 
                     let coroutine : Vec<u8> = 0usize.to().into_iter()
                         .chain(proc.to())
@@ -89,10 +103,10 @@ impl Vm {
                 Op::DataToHeap(x, ref data) => {
                     let data = &data.0;
                     let addr = self.current.locals[x];
-                    if addr > self.memory.len() {
+                    if addr > self.memory_len {
                         return Err(VmError::MemoryAccessOutOfRange(addr, self.stack_trace()));
                     }
-                    if addr + data.len() > self.memory.len() {
+                    if addr + data.len() > self.memory_len {
                         return Err(VmError::SetMemoryOutOfRange(addr, data.len(), self.stack_trace()));
                     }
                     self.memory[addr .. addr + data.len()].copy_from_slice(data);
@@ -361,7 +375,7 @@ impl Vm {
 
     fn set_deref(&mut self, dest: usize, value: &[u8]) -> Result<(), VmError> {
         let dest_addr = self.current.locals[dest];
-        if dest_addr + value.len() > self.memory.len() {
+        if dest_addr + value.len() > self.memory_len {
             return Err(VmError::SetMemoryOutOfRange(dest_addr, value.len(), self.stack_trace()));
         }
         self.memory[dest_addr .. dest_addr + value.len()].copy_from_slice(&value);
@@ -370,7 +384,7 @@ impl Vm {
 
     fn deref_bytes(&self, local: usize, len : usize) -> Result<Vec<u8>, VmError> {
         let addr = self.current.locals[local];
-        if addr + len > self.memory.len() {
+        if addr + len > self.memory_len {
             return Err(VmError::MemoryAccessOutOfRange(addr, self.stack_trace()));
         }
         let value : Vec<u8> = self.memory[addr  .. addr + len].try_into().unwrap();
@@ -379,7 +393,7 @@ impl Vm {
 
     fn deref<T: Byteable<S>, const S: usize>(&self, local: usize) -> Result<T, VmError> {
         let addr = self.current.locals[local];
-        if addr + S > self.memory.len() {
+        if addr + S > self.memory_len {
             return Err(VmError::MemoryAccessOutOfRange(addr, self.stack_trace()));
         }
         let value : [u8; S] = self.memory[addr  .. addr + S].try_into().unwrap();
@@ -388,7 +402,8 @@ impl Vm {
     }
 
     fn allocate(&mut self, mut data : Vec<u8>) -> usize {
-        let len = self.memory.len();
+        let len = self.memory_len;
+        self.memory_len += data.len();
         self.memory.append(&mut data);
         return len;
     }

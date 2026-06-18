@@ -22,6 +22,9 @@ pub enum Op<ID> {
     BranchTrue(ID, ID),
 
     AllocateData(ID, usize),
+    EndOfMemory(ID),
+    DropMemory(ID),
+
     Coroutine(ID, ID, Vec<ID>), 
     Resume(ID),
     Yield(ID),
