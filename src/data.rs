@@ -28,6 +28,7 @@ pub enum Op<ID> {
     Coroutine(ID, ID, Vec<ID>), 
     Resume(ID),
     Yield(ID),
+    Finish(ID, ID),
 
     DataToHeap(ID, Data),
     PtrToHeap(ID, ID),

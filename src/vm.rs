@@ -88,6 +88,8 @@ impl Vm {
 
                     // TODO Going to need to pad out this thing so that the created buffer can be
                     // reused for the running buffer
+                    //
+
 
                     let coroutine : Vec<u8> = 0usize.to().into_iter()
                         .chain(proc.to())
@@ -103,6 +105,17 @@ impl Vm {
                 },
                 Op::Yield(_) => {
                     // TODO
+                },
+                Op::Finish(dest, coroutine) => {
+                    let addr = self.current.locals[coroutine];
+                    let status : usize = self.from_address(addr)?;
+                    if status == 2 {
+                        self.set_deref(dest, &true.to())?;
+                    }
+                    else {
+                        self.set_deref(dest, &false.to())?;
+                    }
+                    self.current.ip += 1;
                 },
                 Op::DataToHeap(x, ref data) => {
                     let data = &data.0;
@@ -397,6 +410,15 @@ impl Vm {
 
     fn deref<T: Byteable<S>, const S: usize>(&self, local: usize) -> Result<T, VmError> {
         let addr = self.current.locals[local];
+        if addr + S > self.memory_len {
+            return Err(VmError::MemoryAccessOutOfRange(addr, self.stack_trace()));
+        }
+        let value : [u8; S] = self.memory[addr  .. addr + S].try_into().unwrap();
+        let value = Byteable::<S>::from(value);
+        Ok(value)
+    }
+
+    fn from_address<T: Byteable<S>, const S: usize>(&self, addr: usize) -> Result<T, VmError> {
         if addr + S > self.memory_len {
             return Err(VmError::MemoryAccessOutOfRange(addr, self.stack_trace()));
         }
