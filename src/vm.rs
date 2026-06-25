@@ -31,8 +31,8 @@ impl Vm {
     }
 
     pub fn run(&mut self, entry : usize) -> Result<usize, VmError> {
-        const CO_RUN : usize = 1;
-        const CO_FINISH : usize = 2;
+        const CO_RUN : usize = 0;
+        const CO_FINISH : usize = 1;
 
         if entry >= self.procs.len() {
             return Err(VmError::UnknownProcId(entry, self.stack_trace()));
@@ -82,31 +82,17 @@ impl Vm {
                 },
                 Op::Coroutine(dest, proc, ref params) => { 
                     // Status: usize
-                    // running = 1
-                    // finished = 2
-                    // running | proc: usize | ip: usize | local_len: usize | locals (list of usize)
-                    // finished | proc: usize
+                    // running = 0
+                    // finished = 1
+                    // running or finished | proc: usize | ip: usize | locals (list of usize as u8s)
 
-                    let running_size = {
-                        let status_size = std::mem::size_of::<usize>();
-                        let proc_size = std::mem::size_of::<usize>();
-                        let ip_size = std::mem::size_of::<usize>();
-                        let local_len_size = std::mem::size_of::<usize>();
-                        let locals_size = std::mem::size_of::<usize>() * self.procs[proc].frame_size;
-                        status_size + proc_size + ip_size + local_len_size + locals_size 
-                    };
-
-                    let mut coroutine : Vec<u8> = CO_CREATE.to().into_iter()
+                    let mut coroutine : Vec<u8> = CO_RUN.to().into_iter()
                         .chain(proc.to())
-                        .chain(params.len().to())
-                        // TODO: This should be pulling the values out of the self.current.locals
-                        .chain(params.iter().flat_map(|x| x.to()))
+                        .chain(0usize.to()) // IP
+                        .chain(params.iter().map(|x| self.current.locals[*x]).flat_map(|x| x.to()))
+                        .chain(std::iter::repeat(0usize).take(self.procs[proc].frame_size - params.len()).flat_map(|x| x.to()))
                         .collect();
 
-                    if coroutine.len() < running_size {
-                        coroutine.append(&mut vec![0; running_size - coroutine.len()]);
-                    }
-                    
                     let addr = self.allocate(coroutine);
                     self.current.locals[dest] = addr;
                     self.current.ip += 1;
@@ -117,33 +103,26 @@ impl Vm {
                     // generally don't need to be checked because if they're wrong that's a compiler
                     // defect.  But here a program could change that value to something invalid.
 
-                    // TODO push the address of the coroutine on the locals of the coroutine so that
-                    // it knows where to dump updated data in a yield.
                     let addr = self.current.locals[x];
                     let status : usize = self.from_address(addr)?;
                     match status {
-                        CO_CREATE => {
+                        CO_RUN => {
                             let proc_addr = addr + std::mem::size_of::<usize>();
-                            let param_len_addr = proc_addr + std::mem::size_of::<usize>();
-                            let params_addr = param_len_addr + std::mem::size_of::<usize>();
+                            let ip_addr = proc_addr + std::mem::size_of::<usize>();
+                            let locals_addr = ip_addr + std::mem::size_of::<usize>();
 
                             let proc : usize = self.from_address(proc_addr)?;
                             if proc >= self.procs.len() {
-                                return Err(VmError::UnknownProcId(entry, self.stack_trace()));
+                                return Err(VmError::UnknownProcId(proc, self.stack_trace()));
                             }
 
-                            let params_len : usize = self.from_address(param_len_addr)?;
-                            let params = {
+                            let locals = {
                                 let mut xs : Vec<usize> = vec![];
-                                for offset in 0..params_len {
-                                    xs.push(self.from_address(params_addr + (offset * std::mem::size_of::<usize>()))?);
+                                for offset in 0..self.procs[proc].frame_size {
+                                    xs.push(self.from_address(locals_addr + (offset * std::mem::size_of::<usize>()))?);
                                 }
                                 xs
                             };
-
-                            let locals = params.into_iter()
-                                               .chain(std::iter::repeat(0usize).take(self.procs[proc].frame_size - params_len))
-                                               .collect();
 
                             self.current.ip += 1;
                             
@@ -160,10 +139,6 @@ impl Vm {
                             // Note:  The address of the coroutine is a hidden last local so that
                             // Yield knows where to put the serialized coroutine
                             self.current.locals.push(addr);
-                        },
-                        CO_RUN => {
-
-                            // TODO
                         },
                         CO_FINISH => {
                             // TODO
