@@ -245,6 +245,7 @@ impl Vm {
                     self.frames.push(old);
                 },
                 Op::DynCall(local, ref params) => {
+                    // TODO:  fun here has to be checked because any local could be used
                     let fun : usize = self.deref(local)?;
                     let params_len = params.len();
                     let locals = params.iter()
