@@ -86,7 +86,7 @@ impl Vm {
                     // finished = 1
                     // running or finished | proc: usize | ip: usize | locals (list of usize as u8s)
 
-                    let mut coroutine : Vec<u8> = CO_RUN.to().into_iter()
+                    let coroutine : Vec<u8> = CO_RUN.to().into_iter()
                         .chain(proc.to())
                         .chain(0usize.to()) // IP
                         .chain(params.iter().map(|x| self.current.locals[*x]).flat_map(|x| x.to()))
