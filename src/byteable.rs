@@ -50,4 +50,3 @@ impl Byteable<BOOL_SIZE> for bool {
         input[0] != 0
     }
 }
-
