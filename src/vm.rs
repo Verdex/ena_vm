@@ -31,7 +31,6 @@ impl Vm {
     }
 
     pub fn run(&mut self, entry : usize) -> Result<usize, VmError> {
-        const CO_CREATE : usize = 0;
         const CO_RUN : usize = 1;
         const CO_FINISH : usize = 2;
 
@@ -81,12 +80,10 @@ impl Vm {
                     self.memory_len = x;
                     self.current.ip += 1;
                 },
-                Op::Coroutine(dest, proc, ref params) => {
+                Op::Coroutine(dest, proc, ref params) => { 
                     // Status: usize
-                    // created = 0
                     // running = 1
                     // finished = 2
-                    // created | proc: usize | param_len: usize | params (list of usize)
                     // running | proc: usize | ip: usize | local_len: usize | locals (list of usize)
                     // finished | proc: usize
 
