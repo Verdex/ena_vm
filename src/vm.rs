@@ -412,6 +412,15 @@ impl Vm {
         }
     }
 
+    fn pack_init_coroutine(&self, proc: usize, params: &[usize]) -> Vec<u8> {
+        CO_RUN.to().into_iter()
+            .chain(proc.to())
+            .chain(0usize.to()) 
+            .chain(params.iter().map(|x| self.current.locals[*x]).flat_map(|x| x.to()))
+            .chain(std::iter::repeat(0usize).take(self.procs[proc].frame_size - params.len()).flat_map(|x| x.to()))
+            .collect()
+    }
+
     fn uni_math<T: Byteable<S>, const S: usize>(&mut self, 
         dest: usize, 
         x: usize, 
@@ -489,6 +498,7 @@ impl Vm {
                           .collect()
     }
 }
+
 
 #[cfg(test)]
 mod test { 
