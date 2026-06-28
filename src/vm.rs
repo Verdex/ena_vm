@@ -413,7 +413,8 @@ impl Vm {
     }
 
     fn pack_init_coroutine(&self, proc: usize, params: &[usize]) -> Vec<u8> {
-        CO_RUN.to().into_iter()
+        // TODO co_run
+        0usize.to().into_iter()
             .chain(proc.to())
             .chain(0usize.to()) 
             .chain(params.iter().map(|x| self.current.locals[*x]).flat_map(|x| x.to()))
